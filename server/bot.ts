@@ -1,0 +1,133 @@
+/**
+ * Логика Telegram-бота: обработка входящих апдейтов.
+ *
+ * Один и тот же обработчик используется и для вебхука (Vercel), и для long-polling
+ * (локальная разработка) — меняется только способ доставки апдейтов.
+ *
+ * Сценарий:
+ *  1. Клиент заполняет анкету на сайте → сервер создаёт заявку и отдаёт ссылку
+ *     t.me/<bot>?start=<sessionId>.
+ *  2. Клиент открывает ссылку и нажимает «Start» → Telegram присылает боту
+ *     сообщение «/start <sessionId>» вместе с chat_id клиента.
+ *  3. Бот привязывает chat_id к заявке, отправляет клиенту подтверждение,
+ *     а психологу — полную анкету со ссылкой на клиента.
+ */
+
+import { buildPsychologistLink } from './config.js';
+import {
+  confirmationForClient,
+  confirmedLeadForPsychologist,
+  expiredSessionMessage,
+  fallbackMessage,
+  welcomeMessage,
+} from './messages.js';
+import { localSessionApi, type SessionApi } from './sessionApi.js';
+import { sendMessage, sendToPsychologist } from './telegram.js';
+import type { TelegramClient } from './types.js';
+
+/** Минимальный набор полей апдейта, который нам нужен (полная схема Bot API гораздо шире). */
+export interface TelegramUpdate {
+  update_id: number;
+  message?: {
+    message_id: number;
+    text?: string;
+    chat: { id: number; type: string };
+    from?: {
+      id: number;
+      username?: string;
+      first_name?: string;
+      last_name?: string;
+      is_bot?: boolean;
+    };
+  };
+}
+
+/**
+ * Обрабатывает один апдейт.
+ * Никогда не выбрасывает исключение наружу: для вебхука важно всегда ответить 200,
+ * иначе Telegram будет бесконечно повторять доставку.
+ */
+export async function handleUpdate(update: TelegramUpdate, api: SessionApi = localSessionApi): Promise<void> {
+  try {
+    const message = update.message;
+    if (!message || message.chat.type !== 'private') return;
+
+    const text = (message.text ?? '').trim();
+    const from = message.from;
+    if (!from || from.is_bot) return;
+
+    const client: TelegramClient = {
+      chatId: message.chat.id,
+      ...(from.username ? { username: from.username } : {}),
+      ...(from.first_name ? { firstName: from.first_name } : {}),
+      ...(from.last_name ? { lastName: from.last_name } : {}),
+    };
+
+    if (text.startsWith('/start')) {
+      // Параметр deep-link идёт через пробел: «/start abc123».
+      const payload = text.slice('/start'.length).trim();
+      if (payload) {
+        await handleStartWithSession(payload, client, api);
+      } else {
+        await sendMessage(client.chatId, welcomeMessage());
+      }
+      return;
+    }
+
+    if (text === '/help') {
+      await sendMessage(client.chatId, welcomeMessage());
+      return;
+    }
+
+    await sendMessage(client.chatId, fallbackMessage());
+  } catch (error) {
+    console.error('[bot] Ошибка обработки апдейта:', error);
+  }
+}
+
+/** Обрабатывает /start с идентификатором заявки. */
+async function handleStartWithSession(
+  sessionId: string,
+  client: TelegramClient,
+  api: SessionApi,
+): Promise<void> {
+  let result: Awaited<ReturnType<SessionApi['attach']>> = null;
+
+  try {
+    result = await api.attach(sessionId, client);
+  } catch (error) {
+    console.error('[bot] Не удалось получить заявку:', error);
+    await sendMessage(
+      client.chatId,
+      [
+        '😔 Не получилось подтвердить заявку — похоже, сервис временно недоступен.',
+        '',
+        `Пожалуйста, напишите психологу напрямую: ${buildPsychologistLink()}`,
+      ].join('\n'),
+    );
+    return;
+  }
+
+  // Ссылка устарела или заявка не найдена.
+  if (!result) {
+    await sendMessage(client.chatId, expiredSessionMessage());
+    return;
+  }
+
+  const { session, alreadyConfirmed } = result;
+
+  // Повторное нажатие «Start» по той же ссылке — просто повторяем подтверждение клиенту,
+  // но психолога вторым уведомлением не беспокоим.
+  await sendMessage(client.chatId, confirmationForClient(session), [
+    { text: '💬 Написать психологу', url: buildPsychologistLink() },
+  ]);
+
+  if (alreadyConfirmed) return;
+
+  await sendToPsychologist(
+    confirmedLeadForPsychologist(session),
+    session.client?.username
+      ? [{ text: '💬 Открыть чат с клиентом', url: `https://t.me/${session.client.username}` }]
+      : undefined,
+  );
+}
