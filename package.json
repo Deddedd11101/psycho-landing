@@ -1,0 +1,33 @@
+{
+  "name": "psycho-landing",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Лендинг психолога с пошаговой воронкой записи и интеграцией с Telegram",
+  "workspaces": [
+    "frontend",
+    "backend",
+    "bot"
+  ],
+  "scripts": {
+    "dev": "concurrently -n \"SERVER,WEB\" -c \"cyan,magenta\" \"npm:dev:server\" \"npm:dev:web\"",
+    "dev:web": "npm run dev --workspace frontend",
+    "dev:server": "npm run dev --workspace backend",
+    "dev:bot": "npm run dev --workspace bot",
+    "build": "npm run build --workspace frontend",
+    "typecheck": "npm run typecheck --workspace frontend && tsc -p tsconfig.server.json --noEmit",
+    "start": "npm run start --workspace backend",
+    "bot:set-webhook": "npm run set-webhook --workspace bot",
+    "bot:delete-webhook": "npm run delete-webhook --workspace bot"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "@vercel/node": "^5.0.0",
+    "concurrently": "^9.1.2",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

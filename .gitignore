@@ -1,0 +1,22 @@
+# зависимости
+node_modules/
+
+# сборка
+dist/
+build/
+.vercel/
+*.tsbuildinfo
+
+# переменные окружения (секреты никогда не попадают в git)
+.env
+.env.local
+.env.*.local
+
+# логи и служебные файлы
+*.log
+npm-debug.log*
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
