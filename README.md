@@ -1,11 +1,25 @@
-# Лендинг психолога с воронкой записи и Telegram-ботом
+# Сайт психолога Софьи Дарвиной — лендинг, воронка записи и Telegram-бот
 
-Готовый к деплою сайт психолога: адаптивный лендинг, пошаговая воронка (wizard) сбора анкеты,
-выбор даты и времени приёма и уведомления через Telegram-бота — психологу и клиенту.
+Готовый к деплою сайт: адаптивный лендинг, пошаговая воронка (wizard) сбора анкеты,
+выбор даты и времени приёма и уведомления через Telegram-бота — специалисту и клиенту.
+
+Специалист: **Софья Дарвина**, психолог, гештальт-терапевт (Ростов-на-Дону и онлайн).
+Бот записи: [@darwinapsybot](https://t.me/darwinapsybot). Личный контакт: [@darwina_sonia](https://t.me/darwina_sonia).
 
 **Стек:** React 18 + TypeScript + Vite (фронтенд), Node.js + Express / serverless-функции Vercel (бэкенд),
 Telegram Bot API напрямую через `fetch` (без внешних библиотек), обычный CSS с переменными темы.
 База данных не нужна: заявка живёт в памяти (или в Redis) до подтверждения в боте.
+
+> **Что осталось заполнить перед публикацией**
+>
+> - `PSYCHOLOGIST_CHAT_ID` в `.env` — Софья нажимает «Start» у [@darwinapsybot](https://t.me/darwinapsybot),
+>   затем `npm run bot:whoami` покажет нужный chat_id.
+> - Реальное фото вместо заглушки: положить файл в `frontend/public` и указать путь
+>   в `frontend/src/data/content.ts` (поле `photo`).
+> - Точный адрес очного приёма (`OFFICE_ADDRESS` в `.env`) и ссылка на видеовстречу (`MEETING_LINK`).
+> - Раздел с отзывами появится, когда будут реальные отзывы клиентов с их согласия.
+> - После настройки стоит перевыпустить токен бота (`/revoke` у @BotFather), если он куда-то попадал
+>   в переписке.
 
 ---
 
@@ -30,7 +44,7 @@ Telegram Bot API напрямую через `fetch` (без внешних би
 **Лендинг**
 
 - Фиксированная шапка с якорной навигацией (на мобильных — бургер-меню).
-- Первый экран, блоки «О психологе», «Услуги и цены», «Как проходит работа», «Отзывы», FAQ,
+- Первый экран, блоки «О психологе», «Услуги и цены», «Как проходит работа», «Принципы работы», FAQ,
   призыв к действию, подвал с политикой конфиденциальности.
 - Адаптивная вёрстка mobile-first, зоны нажатия от 44–52 px, поддержка `prefers-reduced-motion`.
 
@@ -113,16 +127,17 @@ POST /api/submit-form ──► сервер создаёт заявку (sessio
 ├── backend/                  # Express-сервер: локальная разработка и деплой на VPS
 │   └── src/index.ts
 │
-├── bot/                      # Запуск бота отдельным процессом + настройка вебхука
+├── bot/                      # Запуск бота отдельным процессом + служебные утилиты
 │   ├── src/index.ts
-│   └── src/setWebhook.ts
+│   ├── src/setWebhook.ts     #   установка и удаление вебхука
+│   └── src/whoami.ts         #   показать chat_id тех, кто писал боту
 │
 ├── frontend/                 # React + TypeScript (Vite)
 │   ├── index.html
 │   └── src/
 │       ├── main.tsx, App.tsx, types.ts
 │       ├── api/client.ts             # запросы к API
-│       ├── data/content.ts           # ВЕСЬ текст лендинга: услуги, цены, отзывы, контакты
+│       ├── data/content.ts           # ВЕСЬ текст лендинга: услуги, цены, принципы, контакты
 │       ├── hooks/useWizardState.ts   # состояние воронки + черновик в localStorage
 │       ├── utils/slots.ts            # расписание приёма (статичное)
 │       ├── utils/validation.ts       # валидация шагов
@@ -181,6 +196,7 @@ curl http://localhost:3001/api/health
 | `npm run build` | Сборка фронтенда в `frontend/dist` |
 | `npm run typecheck` | Проверка типов фронтенда и серверного кода |
 | `npm start` | Express в продакшн-режиме (раздаёт `frontend/dist`) |
+| `npm run bot:whoami` | Показать chat_id тех, кто писал боту (для `PSYCHOLOGIST_CHAT_ID`) |
 | `npm run bot:set-webhook` | Установить вебхук Telegram на `PUBLIC_URL` |
 | `npm run bot:delete-webhook` | Удалить вебхук (вернуться к long-polling) |
 
@@ -190,19 +206,27 @@ curl http://localhost:3001/api/health
 
 **1. Создайте бота**
 
+Для этого проекта бот уже создан — [@darwinapsybot](https://t.me/darwinapsybot), токен лежит в `.env`.
+Если понадобится новый бот:
+
 1. Откройте в Telegram [@BotFather](https://t.me/BotFather) и отправьте `/newbot`.
-2. Введите отображаемое имя (например, «Запись к психологу Анне»).
-3. Введите username — обязательно заканчивается на `bot` (например, `psy_anna_booking_bot`).
+2. Введите отображаемое имя (например, «Запись к Софье Дарвиной»).
+3. Введите username — обязательно заканчивается на `bot` (например, `darwinapsybot`).
 4. BotFather пришлёт токен вида `1234567890:AAHdqTcvCH1vGWJxfSeofSAs0K5PALDsaw`.
    Это `BOT_TOKEN`, а username без `@` — это `BOT_USERNAME`.
 
-**2. Узнайте chat_id психолога**
+**2. Узнайте chat_id специалиста**
 
-Напишите боту [@userinfobot](https://t.me/userinfobot) — он ответит числовым `Id`.
-Это значение и есть `PSYCHOLOGIST_CHAT_ID`.
+Софья открывает [@darwinapsybot](https://t.me/darwinapsybot) и нажимает «Start». После этого:
 
-> Психолог должен хотя бы один раз нажать «Start» в вашем боте — иначе Telegram
-> не разрешит боту писать ему первым.
+```bash
+npm run bot:whoami
+```
+
+Команда покажет строку вида `PSYCHOLOGIST_CHAT_ID=123456789` — скопируйте её в `.env`.
+
+> Нажать «Start» обязательно: без этого Telegram не разрешит боту писать первым,
+> и заявки приходить не будут.
 
 **3. Необязательно, но приятно**
 
@@ -231,6 +255,7 @@ help - Как записаться
 | `BOT_USERNAME` | да | Username бота без `@` — для ссылки `t.me/<username>?start=…` |
 | `PSYCHOLOGIST_CHAT_ID` | да | Числовой chat_id получателя заявок |
 | `PSYCHOLOGIST_USERNAME` | да | Публичный контакт психолога (без `@`) |
+| `PSYCHOLOGIST_NAME` | нет | Имя специалиста в текстах бота |
 | `MEETING_LINK` | нет | Ссылка на онлайн-встречу в подтверждении клиенту |
 | `OFFICE_ADDRESS` | нет | Адрес очного приёма |
 | `PUBLIC_URL` | нет | Публичный адрес сайта (в текстах бота и при установке вебхука) |
@@ -274,7 +299,7 @@ UPSTASH_REDIS_REST_TOKEN=AX...
 **4. Добавьте остальные переменные окружения**
 
 В настройках проекта (*Settings → Environment Variables*) задайте `BOT_TOKEN`, `BOT_USERNAME`,
-`PSYCHOLOGIST_CHAT_ID`, `PSYCHOLOGIST_USERNAME`, `MEETING_LINK`, `OFFICE_ADDRESS`,
+`PSYCHOLOGIST_CHAT_ID`, `PSYCHOLOGIST_USERNAME`, `PSYCHOLOGIST_NAME`, `MEETING_LINK`, `OFFICE_ADDRESS`,
 `PUBLIC_URL` (адрес вашего сайта), `TELEGRAM_WEBHOOK_SECRET` (любая длинная случайная строка)
 и `USE_POLLING=false`.
 
@@ -349,7 +374,7 @@ git push -u origin feature/new-prices
 
 | Что менять | Где |
 | --- | --- |
-| Имя, фото, опыт, контакты, тексты, услуги, цены, отзывы, FAQ | `frontend/src/data/content.ts` |
+| Имя, фото, образование, контакты, тексты, услуги, цены, принципы, FAQ | `frontend/src/data/content.ts` |
 | Направления работы в анкете | `server/topics.ts` (общий файл для сайта и бота) |
 | Расписание приёма, длина окна записи | `frontend/src/utils/slots.ts` |
 | Тексты сообщений в Telegram | `server/messages.ts` |

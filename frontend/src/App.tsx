@@ -12,8 +12,8 @@ import {
   Faq,
   Footer,
   Hero,
+  Principles,
   Process,
-  Reviews,
   Services,
 } from './components/landing/Sections';
 import { WizardModal } from './components/wizard/WizardModal';
@@ -33,7 +33,7 @@ export function App() {
         <About />
         <Services onStart={openWizard} />
         <Process />
-        <Reviews />
+        <Principles />
         <Faq />
         <CallToAction onStart={openWizard} />
       </main>

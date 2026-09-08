@@ -18,7 +18,8 @@
     "typecheck": "npm run typecheck --workspace frontend && tsc -p tsconfig.server.json --noEmit",
     "start": "npm run start --workspace backend",
     "bot:set-webhook": "npm run set-webhook --workspace bot",
-    "bot:delete-webhook": "npm run delete-webhook --workspace bot"
+    "bot:delete-webhook": "npm run delete-webhook --workspace bot",
+    "bot:whoami": "npm run whoami --workspace bot"
   },
   "devDependencies": {
     "@types/node": "^22.10.2",

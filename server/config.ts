@@ -30,11 +30,13 @@ export const config = {
   /** Токен бота от @BotFather. */
   botToken: env('BOT_TOKEN'),
   /** Username бота без @ — нужен для deep-link. */
-  botUsername: env('BOT_USERNAME') ?? 'my_psychologist_bot',
+  botUsername: env('BOT_USERNAME') ?? 'darwinapsybot',
   /** Числовой chat_id психолога — получатель заявок. */
   psychologistChatId: env('PSYCHOLOGIST_CHAT_ID'),
   /** Публичный username психолога (без @) для ссылки клиенту. */
-  psychologistUsername: env('PSYCHOLOGIST_USERNAME') ?? 'psy_anna',
+  psychologistUsername: env('PSYCHOLOGIST_USERNAME') ?? 'darwina_sonia',
+  /** Имя специалиста — подставляется в тексты бота. */
+  psychologistName: env('PSYCHOLOGIST_NAME') ?? 'психолог',
 
   /** Ссылка на онлайн-встречу, отправляется клиенту при подтверждении. */
   meetingLink: env('MEETING_LINK') ?? 'ссылку пришлём в чат перед встречей',

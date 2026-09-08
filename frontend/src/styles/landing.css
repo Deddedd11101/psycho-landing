@@ -1,6 +1,6 @@
 /**
  * Стили лендинга: шапка, первый экран, блоки «О психологе», «Услуги», «Как проходит»,
- * «Отзывы», FAQ, призыв к действию и подвал.
+ * «Принципы работы», FAQ, призыв к действию и подвал.
  */
 
 /* ---------- Шапка ---------- */
@@ -491,14 +491,14 @@
   font-size: 15px;
 }
 
-/* ---------- Отзывы ---------- */
+/* ---------- Принципы работы ---------- */
 
-.reviews__grid {
+.principles__grid {
   display: grid;
   gap: 16px;
 }
 
-.review-card {
+.principle-card {
   display: flex;
   flex-direction: column;
   padding: 26px;
@@ -507,40 +507,24 @@
   border: 1px solid var(--color-border);
 }
 
-.review-card__quote {
-  font-size: 34px;
-  line-height: 1;
-  color: var(--color-accent);
-  margin-bottom: 12px;
-}
-
-.review-card__text {
-  font-size: 15px;
-  color: var(--color-text-muted);
-  margin-bottom: 22px;
-}
-
-.review-card__author {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-top: auto;
-}
-
-.review-card__avatar {
-  width: 46px;
-  height: 46px;
+.principle-card__icon {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  margin-bottom: 16px;
   border-radius: var(--radius-full);
-  object-fit: cover;
+  background-color: var(--color-accent-soft);
+  font-size: 22px;
 }
 
-.review-card__name {
-  font-weight: 600;
+.principle-card__title {
+  font-size: 19px;
+  margin-bottom: 10px;
+}
+
+.principle-card__text {
   font-size: 15px;
-}
-
-.review-card__meta {
-  font-size: 13px;
   color: var(--color-text-muted);
 }
 
@@ -727,7 +711,7 @@
 
   .services__grid,
   .process__grid,
-  .reviews__grid {
+  .principles__grid {
     grid-template-columns: repeat(2, 1fr);
   }
 
@@ -806,9 +790,5 @@
 
   .process__grid {
     grid-template-columns: repeat(4, 1fr);
-  }
-
-  .reviews__grid {
-    grid-template-columns: repeat(3, 1fr);
   }
 }

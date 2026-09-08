@@ -37,7 +37,7 @@ export function Header({ onStart }: HeaderProps) {
             </span>
             <span className="header__logo-text">
               {psychologist.name}
-              <small>психолог-консультант</small>
+              <small>{psychologist.roleShort}</small>
             </span>
           </a>
 

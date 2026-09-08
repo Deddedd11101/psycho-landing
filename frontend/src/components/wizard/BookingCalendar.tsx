@@ -28,7 +28,7 @@ export function BookingCalendar({ data, onChange }: BookingCalendarProps) {
     <div className="step">
       <h3 className="step__title">Выберите время</h3>
       <p className="step__hint">
-        Встреча длится 50 минут. Время указано московское. Если удобного слота нет — напишите, подберём индивидуально.
+        Встреча длится 60 минут. Время указано московское. Если удобного слота нет — напишите, подберём индивидуально.
       </p>
 
       {days.length === 0 ? (
@@ -92,7 +92,7 @@ export function BookingCalendar({ data, onChange }: BookingCalendarProps) {
                   name="format"
                   value={value}
                   label={label}
-                  hint={value === 'online' ? 'Ссылку пришлём в Telegram перед встречей' : 'Москва, адрес пришлём в чат'}
+                  hint={value === 'online' ? 'Ссылку пришлю в Telegram перед встречей' : 'Ростов-на-Дону, точный адрес пришлю в чат'}
                   checked={data.format === value}
                   onChange={(selected) => onChange({ format: selected as SessionFormat })}
                 />

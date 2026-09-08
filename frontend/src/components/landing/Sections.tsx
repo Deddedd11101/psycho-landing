@@ -1,6 +1,6 @@
 /**
  * Секции лендинга: первый экран, «О психологе», «Услуги и цены»,
- * «Как проходит работа», «Отзывы», FAQ, призыв к действию, политика и подвал.
+ * «Как проходит работа», «Принципы работы», FAQ, призыв к действию, политика и подвал.
  *
  * Весь текст берётся из data/content.ts — компоненты только отрисовывают его.
  */
@@ -11,9 +11,9 @@ import {
   aboutFacts,
   aboutParagraphs,
   faq,
+  principles,
   processSteps,
   psychologist,
-  reviews,
   services,
 } from '../../data/content';
 
@@ -33,16 +33,16 @@ export function Hero({ onStart }: StartProps) {
         <div className="hero__grid">
           <div>
             <span className="hero__badge">
-              <span aria-hidden="true">🕊</span> Первая встреча — бесплатно
+              <span aria-hidden="true">🕊</span> Знакомство — 20 минут за 500 ₽
             </span>
 
             <h1 className="hero__title">
-              Пространство, где можно <em>выдохнуть</em> и разобраться в себе
+              Выйти из сценария, который <em>повторяется</em> снова и снова
             </h1>
 
             <p className="hero__text">
-              Помогаю взрослым справляться с тревогой, выгоранием и сложностями в отношениях. Работаю бережно, в вашем
-              темпе — онлайн и очно в {psychologist.cityIn}.
+              Системная работа с отношениями, самооценкой и тревожными состояниями в гештальт-подходе. Онлайн из любого
+              города или очно в {psychologist.cityIn}.
             </p>
 
             <div className="hero__actions">
@@ -55,7 +55,7 @@ export function Hero({ onStart }: StartProps) {
             </div>
 
             <p className="hero__note">
-              <span aria-hidden="true">🔒</span> Анонимно, конфиденциально, без обязательств
+              <span aria-hidden="true">🔒</span> Конфиденциально, в вашем темпе, без обязательств
             </p>
 
             <div className="hero__stats">
@@ -78,8 +78,8 @@ export function Hero({ onStart }: StartProps) {
             <div className="hero__photo-card">
               <span aria-hidden="true">💬</span>
               <span>
-                <strong>Ответ в течение дня</strong>
-                <span>Обычно быстрее — в течение пары часов</span>
+                <strong>Отвечаю в течение дня</strong>
+                <span>Подберём удобное время для первой встречи</span>
               </span>
             </div>
           </div>
@@ -152,8 +152,8 @@ export function Services({ onStart }: StartProps) {
           <span className="section__eyebrow">Услуги и цены</span>
           <h2 className="section__title">Форматы работы</h2>
           <p className="section__subtitle">
-            Начать можно с бесплатного знакомства — оно ни к чему не обязывает. Дальше выбираем формат, который подходит
-            вам по задаче и бюджету.
+            Начать можно со встречи-знакомства: 20 минут, чтобы понять, подходим ли мы друг другу. Дальше — регулярные
+            сессии по 60 минут, онлайн или очно.
           </p>
         </div>
 
@@ -182,8 +182,8 @@ export function Services({ onStart }: StartProps) {
         </div>
 
         <p className="services__note">
-          Оплата после встречи переводом. Отмена или перенос — не позднее чем за 24 часа, иначе сессия считается
-          состоявшейся. Для студентов и людей в трудной ситуации есть несколько мест по сниженной стоимости —{' '}
+          Работаю индивидуально со взрослыми — мужчинами и женщинами. Оплата после встречи переводом. Отмена или перенос
+          — не позднее чем за 24 часа. Если у вас особая ситуация, расскажите о ней в анкете —{' '}
           <button
             type="button"
             onClick={onStart}
@@ -196,7 +196,7 @@ export function Services({ onStart }: StartProps) {
               textDecoration: 'underline',
             }}
           >
-            напишите в заявке
+            обсудим отдельно
           </button>
           .
         </p>
@@ -217,7 +217,7 @@ export function Process() {
           <span className="section__eyebrow">Как проходит работа</span>
           <h2 className="section__title">Четыре понятных шага</h2>
           <p className="section__subtitle">
-            Никаких сюрпризов: вы заранее знаете, что будет происходить на каждом этапе.
+            Никаких сюрпризов: вы заранее знаете, что будет происходить на каждом этапе и сколько это стоит.
           </p>
         </div>
 
@@ -236,35 +236,29 @@ export function Process() {
 }
 
 /* ------------------------------------------------------------------ */
-/* Отзывы                                                              */
+/* Принципы работы                                                     */
 /* ------------------------------------------------------------------ */
 
-export function Reviews() {
+export function Principles() {
   return (
-    <section className="section section--muted" id="reviews">
+    <section className="section section--muted" id="principles">
       <div className="container">
         <div className="section__header">
-          <span className="section__eyebrow">Отзывы</span>
-          <h2 className="section__title">Что говорят клиенты</h2>
-          <p className="section__subtitle">Опубликовано с согласия клиентов, имена изменены.</p>
+          <span className="section__eyebrow">Принципы работы</span>
+          <h2 className="section__title">Как я работаю</h2>
+          <p className="section__subtitle">
+            Чтобы вы понимали, что вас ждёт на встрече, ещё до того, как записались.
+          </p>
         </div>
 
-        <div className="reviews__grid">
-          {reviews.map((review) => (
-            <article className="review-card" key={review.id}>
-              <span className="review-card__quote" aria-hidden="true">
-                “
+        <div className="principles__grid">
+          {principles.map((principle) => (
+            <article className="principle-card" key={principle.id}>
+              <span className="principle-card__icon" aria-hidden="true">
+                {principle.icon}
               </span>
-              <p className="review-card__text">{review.text}</p>
-              <div className="review-card__author">
-                <img className="review-card__avatar" src={review.avatar} alt="" loading="lazy" />
-                <div>
-                  <div className="review-card__name">
-                    {review.name}, {review.age}
-                  </div>
-                  <div className="review-card__meta">запрос: {review.topic}</div>
-                </div>
-              </div>
+              <h3 className="principle-card__title">{principle.title}</h3>
+              <p className="principle-card__text">{principle.text}</p>
             </article>
           ))}
         </div>
@@ -340,7 +334,7 @@ export function CallToAction({ onStart }: StartProps) {
             </a>
           </div>
 
-          <p className="cta__note">Бесплатное знакомство — 30 минут. Без обязательств продолжать.</p>
+          <p className="cta__note">Встреча-знакомство — 20 минут за 500 ₽. Без обязательств продолжать.</p>
         </div>
       </div>
     </section>
@@ -359,7 +353,7 @@ export function Footer() {
           <div>
             <h3 className="footer__title">{psychologist.name}</h3>
             <p className="footer__text">
-              {psychologist.role}. Работаю онлайн и очно в {psychologist.cityIn}.
+              {psychologist.role}. Индивидуальные консультации онлайн из любого города и очно в {psychologist.cityIn}.
             </p>
           </div>
 
@@ -367,9 +361,14 @@ export function Footer() {
             <h3 className="footer__title">Контакты</h3>
             <div className="footer__links">
               <a href={psychologist.telegram} target="_blank" rel="noreferrer">
-                Telegram
+                Telegram: @darwina_sonia
               </a>
-              <a href={`mailto:${psychologist.email}`}>{psychologist.email}</a>
+              <a href={psychologist.avito} target="_blank" rel="noreferrer">
+                Объявление на Авито
+              </a>
+              <span>
+                Очный приём: {psychologist.city}, {psychologist.street}
+              </span>
             </div>
           </div>
 
@@ -378,7 +377,7 @@ export function Footer() {
             <div className="footer__links">
               <a href="#about">О психологе</a>
               <a href="#services">Услуги и цены</a>
-              <a href="#reviews">Отзывы</a>
+              <a href="#principles">Принципы работы</a>
               <a href="#privacy">Конфиденциальность</a>
             </div>
           </div>
@@ -387,8 +386,8 @@ export function Footer() {
         <div className="footer__bottom" id="privacy">
           <p>
             <strong>Политика конфиденциальности.</strong> Данные из анкеты (имя, пол, возраст, телефон и описание
-            запроса) передаются только психологу через Telegram-бота и используются исключительно для организации
-            консультации. Мы не публикуем их, не передаём третьим лицам и не используем для рекламных рассылок. Черновик
+            запроса) передаются только специалисту ({psychologist.name}) через Telegram-бота и используются
+            исключительно для организации консультации. Мы не публикуем их, не передаём третьим лицам и не используем для рекламных рассылок. Черновик
             анкеты хранится в вашем браузере и удаляется после отправки. Заявка хранится на сервере не дольше 24 часов.
             Отозвать согласие можно в любой момент, написав психологу в Telegram.
           </p>
