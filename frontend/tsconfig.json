@@ -1,0 +1,26 @@
+{
+  "//": "Единый конфиг фронтенда: и приложение, и vite.config.ts. Только проверка типов.",
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "jsx": "react-jsx",
+    "types": ["node", "vite/client"],
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    "skipLibCheck": true,
+    "isolatedModules": true,
+    "moduleDetection": "force",
+    "resolveJsonModule": true,
+    "useDefineForClassFields": true,
+    "noEmit": true,
+    "baseUrl": ".",
+    "paths": {
+      "@shared/*": ["../server/*"]
+    }
+  },
+  "include": ["src", "vite.config.ts", "../server/topics.ts", "../server/types.ts"]
+}
