@@ -1,39 +1,61 @@
 /**
  * Выбор даты, времени и формата встречи.
  *
- * Расписание статичное (см. utils/slots.ts): лента ближайших доступных дней,
- * под ней — свободное время выбранного дня.
+ * Сетка приёма задана в utils/slots.ts, а занятое время приходит с сервера
+ * (GET /api/slots): если кто-то уже записался, этот слот в календаре не показывается.
  */
 
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 
 import { FORMAT_LABELS } from '@shared/topics';
 
 import type { SessionFormat, WizardData } from '../../types';
-import { getAvailableDays } from '../../utils/slots';
+import { getAvailableDays, type BookedSlots } from '../../utils/slots';
 import { OptionCard } from './fields';
 
 interface BookingCalendarProps {
   data: WizardData;
   onChange: (patch: Partial<WizardData>) => void;
+  /** Занятое время, полученное с сервера. */
+  booked: BookedSlots;
+  /** Идёт загрузка расписания. */
+  isLoading: boolean;
 }
 
-export function BookingCalendar({ data, onChange }: BookingCalendarProps) {
-  // Список дней считаем один раз за монтирование: он зависит только от текущего времени.
-  const days = useMemo(() => getAvailableDays(), []);
+export function BookingCalendar({ data, onChange, booked, isLoading }: BookingCalendarProps) {
+  // Пересчитываем список дней при каждом обновлении занятых слотов.
+  const days = useMemo(() => getAvailableDays(booked), [booked]);
 
   const selectedDay = days.find((day) => day.date === data.bookingDate);
+
+  // Если выбранное время успели занять, пока клиент заполнял анкету, — снимаем выбор.
+  useEffect(() => {
+    if (!data.bookingDate) return;
+
+    const dayStillFree = days.find((day) => day.date === data.bookingDate);
+    if (!dayStillFree) {
+      onChange({ bookingDate: '', bookingTime: '' });
+      return;
+    }
+
+    if (data.bookingTime && !dayStillFree.times.includes(data.bookingTime)) {
+      onChange({ bookingTime: '' });
+    }
+  }, [days, data.bookingDate, data.bookingTime, onChange]);
 
   return (
     <div className="step">
       <h3 className="step__title">Выберите время</h3>
       <p className="step__hint">
-        Встреча длится 60 минут. Время указано московское. Если удобного слота нет — напишите, подберём индивидуально.
+        Встреча длится 60 минут. Время указано московское. Занятые слоты в списке не показываются — если удобного времени
+        нет, напишите, подберём индивидуально.
       </p>
 
-      {days.length === 0 ? (
+      {isLoading ? (
+        <p className="calendar__empty">Загружаем свободное время…</p>
+      ) : days.length === 0 ? (
         <p className="calendar__empty">
-          Свободных слотов на ближайшие две недели нет. Напишите психологу в Telegram — подберём время вручную.
+          Свободных слотов на ближайшие две недели нет. Напишите в Telegram — подберём время вручную.
         </p>
       ) : (
         <>
@@ -92,7 +114,11 @@ export function BookingCalendar({ data, onChange }: BookingCalendarProps) {
                   name="format"
                   value={value}
                   label={label}
-                  hint={value === 'online' ? 'Ссылку пришлю в Telegram перед встречей' : 'Ростов-на-Дону, точный адрес пришлю в чат'}
+                  hint={
+                    value === 'online'
+                      ? 'Ссылку пришлю в Telegram перед встречей'
+                      : 'Ростов-на-Дону, ул. Станиславского — точный адрес пришлю в чат'
+                  }
                   checked={data.format === value}
                   onChange={(selected) => onChange({ format: selected as SessionFormat })}
                 />

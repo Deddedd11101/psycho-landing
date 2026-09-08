@@ -32,8 +32,13 @@
   flex-direction: column;
   width: 100%;
   max-width: 620px;
-  /* На мобильных окно выезжает снизу и занимает почти весь экран. */
-  max-height: 94vh;
+  /*
+   * Высота фиксирована (а не max-height), чтобы окно не «прыгало» при переходе
+   * между шагами: меняется только содержимое прокручиваемой области.
+   * dvh учитывает адресную строку мобильных браузеров.
+   */
+  height: 92vh;
+  height: 92dvh;
   border-radius: var(--radius-lg) var(--radius-lg) 0 0;
   background-color: var(--color-bg);
   box-shadow: var(--shadow-lg);
@@ -482,7 +487,7 @@ textarea.field__control {
 
 .final-action {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 14px;
   width: 100%;
   padding: 18px;
@@ -515,14 +520,25 @@ textarea.field__control {
   font-size: 20px;
 }
 
+.final-action__body {
+  /* min-width: 0 не даёт длинному тексту растянуть флекс-контейнер за пределы кнопки. */
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
 .final-action__title {
+  display: block;
   font-size: 16px;
   font-weight: 600;
-  margin-bottom: 2px;
+  line-height: 1.3;
 }
 
 .final-action__text {
+  display: block;
   font-size: 13px;
+  line-height: 1.4;
   color: var(--color-text-muted);
 }
 
@@ -762,7 +778,8 @@ textarea.field__control {
   }
 
   .wizard {
-    max-height: 88vh;
+    /* На больших экранах ограничиваем высоту, чтобы окно не растягивалось на весь экран. */
+    height: min(88vh, 720px);
     border-radius: var(--radius-lg);
   }
 

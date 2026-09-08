@@ -249,8 +249,13 @@
   width: 100%;
   aspect-ratio: 4 / 5;
   object-fit: cover;
+  /* Кадрируем по верхней трети: так лицо остаётся в центре композиции. */
+  object-position: center 22%;
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-md);
+  /* Лёгкая коррекция: портрет из телефона обычно чуть «плоский» на светлом фоне. */
+  filter: saturate(1.02) contrast(1.02);
+  background-color: var(--color-surface-muted);
 }
 
 /* Плашка поверх фото — «живой» акцент. */
@@ -282,7 +287,7 @@
 
 .about__grid {
   display: grid;
-  gap: 32px;
+  gap: 28px;
 }
 
 .about__text p + p {
@@ -316,7 +321,6 @@
 }
 
 .about__education {
-  margin-top: 28px;
   padding: 24px;
   border-radius: var(--radius-lg);
   background-color: var(--color-accent-soft);
@@ -775,17 +779,9 @@
   }
 
   .about__grid {
-    grid-template-columns: 0.85fr 1.15fr;
-    gap: 56px;
+    grid-template-columns: 1.1fr 0.9fr;
+    gap: 48px;
     align-items: start;
-  }
-
-  .about__photo {
-    width: 100%;
-    aspect-ratio: 3 / 4;
-    object-fit: cover;
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-md);
   }
 
   .process__grid {

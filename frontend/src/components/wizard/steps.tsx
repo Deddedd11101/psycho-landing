@@ -6,6 +6,7 @@
 import { TOPIC_OPTIONS, GENDER_LABELS, topicLabel } from '@shared/topics';
 
 import type { WizardData } from '../../types';
+import { formatAge } from '../../utils/format';
 import { formatDateLong } from '../../utils/slots';
 import type { FieldErrors } from '../../utils/validation';
 import { FieldError, OptionCard, TextAreaField, TextField } from './fields';
@@ -197,7 +198,7 @@ export function StepSummary({ data, errors, onChange, onEdit, onBooking, onConta
         <div className="summary__row">
           <span className="summary__label">Пол и возраст</span>
           <span className="summary__value">
-            {GENDER_LABELS[data.gender] ?? '—'}, {data.age} лет
+            {GENDER_LABELS[data.gender] ?? '—'}, {formatAge(data.age)}
           </span>
         </div>
         {data.phone && (
@@ -239,9 +240,9 @@ export function StepSummary({ data, errors, onChange, onEdit, onBooking, onConta
           <span className="final-action__icon" aria-hidden="true">
             🗓
           </span>
-          <span>
+          <span className="final-action__body">
             <span className="final-action__title">Записаться на сессию</span>
-            <span className="final-action__text">Выберете удобные дату и время — подтверждение придёт в Telegram</span>
+            <span className="final-action__text">Выберите дату и время — подтверждение придёт в Telegram</span>
           </span>
         </button>
 
@@ -249,8 +250,8 @@ export function StepSummary({ data, errors, onChange, onEdit, onBooking, onConta
           <span className="final-action__icon" aria-hidden="true">
             💬
           </span>
-          <span>
-            <span className="final-action__title">Связаться с психологом в Telegram</span>
+          <span className="final-action__body">
+            <span className="final-action__title">Связаться в Telegram</span>
             <span className="final-action__text">Без записи: сначала обсудим детали в переписке</span>
           </span>
         </button>

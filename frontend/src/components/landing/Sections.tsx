@@ -74,6 +74,13 @@ export function Hero({ onStart }: StartProps) {
               src={psychologist.photo}
               alt={`${psychologist.name} — ${psychologist.role}`}
               loading="eager"
+              // Пока реального файла нет в public — подставляем заглушку,
+              // чтобы на месте фото не оставалась «битая» картинка.
+              onError={(event) => {
+                const image = event.currentTarget;
+                if (image.src.endsWith(psychologist.photoFallback)) return;
+                image.src = psychologist.photoFallback;
+              }}
             />
             <div className="hero__photo-card">
               <span aria-hidden="true">💬</span>
@@ -103,36 +110,21 @@ export function About() {
           <p className="section__subtitle">{psychologist.role}</p>
         </div>
 
+        {/* Фото специалиста показываем один раз — на первом экране. */}
         <div className="about__grid">
-          <img
-            className="about__photo"
-            src={psychologist.photo}
-            alt={`Фотография специалиста: ${psychologist.name}`}
-            loading="lazy"
-          />
-
           <div className="about__text">
             {aboutParagraphs.map((paragraph, index) => (
               <p key={index}>{paragraph}</p>
             ))}
+          </div>
 
-            <div className="about__facts">
-              {aboutFacts.map((fact) => (
-                <div className="about__fact" key={fact.label}>
-                  <span className="about__fact-value">{fact.value}</span>
-                  <span className="about__fact-label">{fact.label}</span>
-                </div>
+          <div className="about__education">
+            <h3>Образование и подготовка</h3>
+            <ul>
+              {psychologist.education.map((item) => (
+                <li key={item}>{item}</li>
               ))}
-            </div>
-
-            <div className="about__education">
-              <h3>Образование и подготовка</h3>
-              <ul>
-                {psychologist.education.map((item) => (
-                  <li key={item}>{item}</li>
-                ))}
-              </ul>
-            </div>
+            </ul>
           </div>
         </div>
       </div>

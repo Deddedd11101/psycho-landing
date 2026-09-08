@@ -24,6 +24,23 @@ export class ApiRequestError extends Error {
   }
 }
 
+/**
+ * Загружает занятое время (дата -> список времени).
+ * Ошибка не критична: при сбое показываем все слоты, а занятость всё равно
+ * проверяется на сервере в момент отправки заявки.
+ */
+export async function fetchBookedSlots(): Promise<Record<string, string[]>> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/slots`);
+    if (!response.ok) return {};
+
+    const data = (await response.json()) as { booked?: Record<string, string[]> };
+    return data.booked ?? {};
+  } catch {
+    return {};
+  }
+}
+
 /** Тело запроса на создание заявки. */
 export interface SubmitPayload {
   intent: Intent;

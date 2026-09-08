@@ -10,11 +10,11 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-import { ApiRequestError, submitForm } from '../../api/client';
+import { ApiRequestError, fetchBookedSlots, submitForm } from '../../api/client';
 import { psychologist } from '../../data/content';
 import { useWizardState } from '../../hooks/useWizardState';
 import type { ClientForm, Gender, Intent, SubmitFormResponse, WizardScreen } from '../../types';
-import { formatDateLong } from '../../utils/slots';
+import { formatDateLong, type BookedSlots } from '../../utils/slots';
 import { validateStep, type FieldErrors } from '../../utils/validation';
 import { BookingCalendar } from './BookingCalendar';
 import { Loader } from './Loader';
@@ -49,6 +49,9 @@ export function WizardModal({ isOpen, onClose }: WizardModalProps) {
    * а на экране успеха слот всё ещё нужно показать.
    */
   const [confirmedSlotLabel, setConfirmedSlotLabel] = useState<string | undefined>(undefined);
+  /** Занятое время, полученное с сервера, и признак его загрузки. */
+  const [bookedSlots, setBookedSlots] = useState<BookedSlots>({});
+  const [slotsLoading, setSlotsLoading] = useState(false);
 
   const bodyRef = useRef<HTMLDivElement>(null);
 
@@ -85,6 +88,16 @@ export function WizardModal({ isOpen, onClose }: WizardModalProps) {
   /* --------------------------------------------------------------- */
   /* Навигация по шагам                                               */
   /* --------------------------------------------------------------- */
+
+  /** Подгружает занятое время с сервера — вызывается перед показом календаря. */
+  const loadSlots = useCallback(async (): Promise<void> => {
+    setSlotsLoading(true);
+    try {
+      setBookedSlots(await fetchBookedSlots());
+    } finally {
+      setSlotsLoading(false);
+    }
+  }, []);
 
   /** Переход к следующему шагу с проверкой текущего. */
   function goNext(): void {
@@ -159,6 +172,15 @@ export function WizardModal({ isOpen, onClose }: WizardModalProps) {
 
         setErrorMessage(message);
 
+        // Слот заняли, пока клиент заполнял анкету: возвращаем к календарю
+        // и подтягиваем актуальное расписание.
+        if (error instanceof ApiRequestError && error.details?.slot) {
+          setErrors({ slot: error.details.slot });
+          setScreen('calendar');
+          void loadSlots();
+          return;
+        }
+
         // Если сервер вернул ошибки по полям — возвращаем человека к анкете.
         if (error instanceof ApiRequestError && error.details) {
           setErrors(error.details);
@@ -170,7 +192,7 @@ export function WizardModal({ isOpen, onClose }: WizardModalProps) {
         setScreen('error');
       }
     },
-    [buildForm, data.bookingDate, data.bookingTime, data.format, reset],
+    [buildForm, data.bookingDate, data.bookingTime, data.format, loadSlots, reset],
   );
 
   /** «Записаться на сессию» на шаге 4: сначала проверяем согласие. */
@@ -181,6 +203,7 @@ export function WizardModal({ isOpen, onClose }: WizardModalProps) {
 
     setDirection('forward');
     setScreen('calendar');
+    void loadSlots();
   }
 
   /** «Связаться с психологом» на шаге 4. */
@@ -254,7 +277,7 @@ export function WizardModal({ isOpen, onClose }: WizardModalProps) {
     if (screen === 'calendar') {
       return (
         <div className={direction === 'back' ? 'step step--back' : 'step'}>
-          <BookingCalendar data={data} onChange={update} />
+          <BookingCalendar data={data} onChange={update} booked={bookedSlots} isLoading={slotsLoading} />
           {errors.slot && (
             <div className="alert" role="alert">
               <span aria-hidden="true">⚠</span>

@@ -8,7 +8,7 @@ import { handleUpdate, type TelegramUpdate } from './bot.js';
 import { config, missingTelegramConfig } from './config.js';
 import { applyCors, header, isInternalRequestAllowed, parseBody, sendError } from './http.js';
 import type { HttpRequestLike, HttpResponseLike } from './http.js';
-import { attachClient, createSession, getSession } from './sessions.js';
+import { attachClient, createSession, getBookedSlots, getSession, SlotTakenError } from './sessions.js';
 import { validateSubmitRequest } from './validation.js';
 import type { TelegramClient } from './types.js';
 
@@ -56,8 +56,38 @@ export async function handleSubmitForm(req: HttpRequestLike, res: HttpResponseLi
     const result = await createSession(validation.value);
     res.status(200).json(result);
   } catch (error) {
+    // 409 — пока клиент заполнял анкету, время занял кто-то другой.
+    if (error instanceof SlotTakenError) {
+      sendError(res, 409, error.message, { slot: error.message });
+      return;
+    }
+
     console.error('[api] Не удалось создать заявку:', error);
     sendError(res, 500, 'Не удалось отправить заявку. Попробуйте ещё раз или напишите психологу напрямую.');
+  }
+}
+
+/**
+ * GET /api/slots
+ * Отдаёт занятые дату и время, чтобы календарь на сайте показывал их недоступными.
+ * Персональных данных в ответе нет, поэтому эндпоинт открытый.
+ */
+export async function handleGetSlots(req: HttpRequestLike, res: HttpResponseLike): Promise<void> {
+  if (handlePreflight(req, res)) return;
+
+  if (req.method !== 'GET') {
+    sendError(res, 405, 'Метод не поддерживается');
+    return;
+  }
+
+  try {
+    const booked = await getBookedSlots();
+    res.status(200).json({ booked });
+  } catch (error) {
+    console.error('[api] Не удалось получить занятые слоты:', error);
+    // Пустой ответ безопаснее ошибки: клиент увидит все слоты,
+    // а занятое время отсечётся при отправке заявки.
+    res.status(200).json({ booked: {} });
   }
 }
 

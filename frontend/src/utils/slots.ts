@@ -1,9 +1,9 @@
 /**
  * Расписание приёма.
  *
- * Слоты заданы статично в коде — так и было задумано для демо-версии.
- * Чтобы подключить реальный календарь, достаточно заменить getAvailableDays()
- * на запрос к API (например, к Google Calendar) — остальной код не изменится.
+ * Сетка рабочих часов задана здесь (SCHEDULE) — правьте её под реальный график.
+ * Занятое время приходит с сервера (GET /api/slots) и передаётся в getAvailableDays:
+ * слот, на который кто-то уже записался, из календаря пропадает.
  */
 
 /** Рабочие часы по дням недели: 0 — воскресенье, 6 — суббота. */
@@ -17,12 +17,8 @@ const SCHEDULE: Record<number, string[]> = {
   // Воскресенье — выходной, поэтому ключа 0 нет.
 };
 
-/**
- * Уже занятые слоты (демо-данные).
- * Ключ — дата YYYY-MM-DD, значение — список занятого времени.
- * В реальном проекте сюда попадали бы подтверждённые записи из базы.
- */
-const BUSY_SLOTS: Record<string, string[]> = {};
+/** Занятые слоты: дата YYYY-MM-DD -> список времени. Приходят с сервера (GET /api/slots). */
+export type BookedSlots = Record<string, string[]>;
 
 /** За сколько часов до встречи закрываем запись. */
 const MIN_HOURS_BEFORE = 12;
@@ -58,10 +54,10 @@ export function toDateKey(date: Date): string {
 }
 
 /**
- * Возвращает список дней с доступным временем на ближайшие две недели.
- * Дни без свободных слотов в список не попадают.
+ * Возвращает список дней со свободным временем на ближайшие две недели.
+ * Занятое время (booked) исключается, дни без свободных слотов не показываются.
  */
-export function getAvailableDays(now: Date = new Date()): AvailableDay[] {
+export function getAvailableDays(booked: BookedSlots = {}, now: Date = new Date()): AvailableDay[] {
   const days: AvailableDay[] = [];
   const todayKey = toDateKey(now);
   // Ближайший момент, на который ещё можно записаться.
@@ -73,7 +69,7 @@ export function getAvailableDays(now: Date = new Date()): AvailableDay[] {
     if (!scheduled) continue;
 
     const dateKey = toDateKey(date);
-    const busy = BUSY_SLOTS[dateKey] ?? [];
+    const busy = booked[dateKey] ?? [];
 
     const times = scheduled.filter((time) => {
       if (busy.includes(time)) return false;

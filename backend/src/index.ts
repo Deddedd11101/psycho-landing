@@ -22,6 +22,7 @@ import { startPolling } from '../../server/polling.js';
 import {
   handleBooking,
   handleGetSession,
+  handleGetSlots,
   handleSubmitForm,
   handleTelegramWebhook,
 } from '../../server/routes.js';
@@ -49,6 +50,10 @@ app.get('/api/health', (_req, res) => {
 
 app.all('/api/submit-form', (req, res) => {
   void handleSubmitForm(req, res as never);
+});
+
+app.all('/api/slots', (req, res) => {
+  void handleGetSlots(req, res as never);
 });
 
 app.all('/api/session/:id', (req, res) => {
