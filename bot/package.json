@@ -1,0 +1,17 @@
+{
+  "name": "bot",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Отдельный процесс Telegram-бота (long-polling) и утилиты настройки вебхука",
+  "type": "module",
+  "main": "src/index.ts",
+  "scripts": {
+    "dev": "tsx watch --clear-screen=false src/index.ts",
+    "start": "tsx src/index.ts",
+    "set-webhook": "tsx src/setWebhook.ts",
+    "delete-webhook": "tsx src/setWebhook.ts --delete"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.7"
+  }
+}
