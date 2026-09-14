@@ -29,8 +29,8 @@ export function validatePersonalStep(data: WizardData): FieldErrors {
     errors.age = 'Укажите возраст';
   } else if (!Number.isInteger(age)) {
     errors.age = 'Возраст — это целое число';
-  } else if (age < 16 || age > 100) {
-    errors.age = 'Я работаю с клиентами от 16 до 100 лет';
+  } else if (age < 18 || age > 100) {
+    errors.age = 'Я работаю только со взрослыми — от 18 лет';
   }
 
   // Телефон необязателен, но если начали вводить — проверяем.

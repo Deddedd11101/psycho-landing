@@ -48,8 +48,8 @@ export function validateForm(input: unknown): ValidationResult<ClientForm> {
   const age = Number(raw.age);
   if (!Number.isFinite(age) || !Number.isInteger(age)) {
     errors.age = 'Возраст должен быть числом';
-  } else if (age < 16 || age > 100) {
-    errors.age = 'Возраст должен быть от 16 до 100 лет';
+  } else if (age < 18 || age > 100) {
+    errors.age = 'Возраст должен быть от 18 до 100 лет';
   }
 
   const topicsRaw = Array.isArray(raw.topics) ? raw.topics : [];

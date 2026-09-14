@@ -151,11 +151,8 @@ export function Services({ onStart }: StartProps) {
 
         <div className="services__grid">
           {services.map((service) => (
-            <article
-              className={`service-card${service.featured ? ' service-card--featured' : ''}`}
-              key={service.id}
-            >
-              {service.featured && <span className="service-card__badge">Чаще всего выбирают</span>}
+            <article className={`service-card${service.badge ? ' service-card--featured' : ''}`} key={service.id}>
+              {service.badge && <span className="service-card__badge">{service.badge}</span>}
               <h3 className="service-card__title">{service.title}</h3>
               <p className="service-card__description">{service.description}</p>
 
@@ -268,7 +265,7 @@ export function Faq() {
   const [openIndex, setOpenIndex] = useState<number | null>(0);
 
   return (
-    <section className="section" id="faq">
+    <section className="section section--centered" id="faq">
       <div className="container">
         <div className="section__header">
           <span className="section__eyebrow">Частые вопросы</span>
@@ -343,20 +340,10 @@ export function Footer() {
       <div className="container">
         <div className="footer__grid">
           <div>
-            <h3 className="footer__title">{psychologist.name}</h3>
-            <p className="footer__text">
-              {psychologist.role}. Индивидуальные консультации онлайн из любого города и очно в {psychologist.cityIn}.
-            </p>
-          </div>
-
-          <div>
             <h3 className="footer__title">Контакты</h3>
             <div className="footer__links">
               <a href={psychologist.telegram} target="_blank" rel="noreferrer">
                 Telegram: @darwina_sonia
-              </a>
-              <a href={psychologist.avito} target="_blank" rel="noreferrer">
-                Объявление на Авито
               </a>
               <span>
                 Очный приём: {psychologist.city}, {psychologist.street}

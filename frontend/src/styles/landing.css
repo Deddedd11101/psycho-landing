@@ -538,6 +538,7 @@
   display: grid;
   gap: 12px;
   max-width: 780px;
+  margin: 0 auto;
 }
 
 .faq__item {
@@ -733,7 +734,8 @@
   }
 
   .footer__grid {
-    grid-template-columns: 2fr 1fr 1fr;
+    grid-template-columns: 1fr 1fr;
+    max-width: 640px;
   }
 }
 

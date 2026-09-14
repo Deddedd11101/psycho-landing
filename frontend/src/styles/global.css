@@ -166,6 +166,13 @@ button {
   font-size: 16px;
 }
 
+/* Секция с заголовком по центру (FAQ). */
+.section--centered .section__header {
+  margin-left: auto;
+  margin-right: auto;
+  text-align: center;
+}
+
 /* ---------- Кнопки ---------- */
 
 .button {
