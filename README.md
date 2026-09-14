@@ -214,14 +214,14 @@ curl http://localhost:3001/api/health
 Если понадобится новый бот:
 
 1. Откройте в Telegram [@BotFather](https://t.me/BotFather) и отправьте `/newbot`.
-2. Введите отображаемое имя (например, «Запись к Софье Дарвиной»).
+2. Введите отображаемое имя (например, «Запись на консультацию»).
 3. Введите username — обязательно заканчивается на `bot` (например, `darwinapsybot`).
 4. BotFather пришлёт токен вида `1234567890:AAHdqTcvCH1vGWJxfSeofSAs0K5PALDsaw`.
    Это `BOT_TOKEN`, а username без `@` — это `BOT_USERNAME`.
 
 **2. Узнайте chat_id специалиста**
 
-Софья открывает [@darwinapsybot](https://t.me/darwinapsybot) и нажимает «Start». После этого:
+Специалист открывает [@darwinapsybot](https://t.me/darwinapsybot) и нажимает «Start». После этого:
 
 ```bash
 npm run bot:whoami
