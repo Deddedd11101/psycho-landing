@@ -66,6 +66,11 @@ export async function handleUpdate(update: TelegramUpdate, api: SessionApi = loc
     if (text.startsWith('/start')) {
       // Параметр deep-link идёт через пробел: «/start abc123».
       const payload = text.slice('/start'.length).trim();
+      // В лог — только идентификаторы, без содержимого анкеты: помогает найти chat_id при настройке.
+      console.log(
+        `[bot] /start от chat_id=${client.chatId}${client.username ? ` @${client.username}` : ''}` +
+          (payload ? ` (заявка ${payload})` : ''),
+      );
       if (payload) {
         await handleStartWithSession(payload, client, api);
       } else {
