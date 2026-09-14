@@ -13,7 +13,7 @@ WorkingDirectory=/opt/psycho
 # Переменные окружения читаются приложением из /opt/psycho/.env (см. server/loadEnv.ts).
 Environment=NODE_ENV=production
 # node:sqlite помечен экспериментальным — предупреждение в логах не нужно.
-Environment=NODE_OPTIONS=--no-warnings=ExperimentalWarning
+Environment=NODE_OPTIONS=--disable-warning=ExperimentalWarning
 ExecStart=/usr/bin/npm start
 Restart=always
 RestartSec=5
