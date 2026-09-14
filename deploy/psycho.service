@@ -1,0 +1,23 @@
+# systemd-юнит: приложение запускается при старте сервера и перезапускается при падении.
+# Устанавливается скриптом deploy/setup-server.sh в /etc/systemd/system/psycho.service
+
+[Unit]
+Description=Psycho landing: API + Telegram bot (Express, long-polling)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=psycho
+WorkingDirectory=/opt/psycho
+# Переменные окружения читаются приложением из /opt/psycho/.env (см. server/loadEnv.ts).
+Environment=NODE_ENV=production
+ExecStart=/usr/bin/npm start
+Restart=always
+RestartSec=5
+# Логи смотреть: journalctl -u psycho -f
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

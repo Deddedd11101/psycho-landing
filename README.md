@@ -328,17 +328,41 @@ curl "https://api.telegram.org/bot<BOT_TOKEN>/setWebhook?url=https://<ваш-д�
 
 ## Деплой на обычный сервер (VPS)
 
+Для этого проекта выбран именно этот вариант: сервер в РФ, бот через long-polling,
+хранилище в памяти процесса — Redis и вебхук не нужны.
+
+В папке `deploy/` лежит всё необходимое:
+
+| Файл | Назначение |
+| --- | --- |
+| `deploy/setup-server.sh` | Первичная настройка чистого Ubuntu/Debian: Node 22, nginx, certbot, systemd, ufw |
+| `deploy/update.sh` | Обновление после изменений в git: pull → build → restart |
+| `deploy/psycho.service` | systemd-юнит (автозапуск, перезапуск при падении) |
+| `deploy/nginx.conf` | nginx: статика фронтенда + прокси `/api` в Node |
+
+**Первый запуск** (от root на сервере):
+
 ```bash
-git clone <ваш-репозиторий> && cd psycho
-npm install
-cp .env.example .env   # заполните значения
-npm run build          # собирает фронтенд в frontend/dist
-npm start              # Express раздаёт статику и API на PORT (по умолчанию 3001)
+git clone https://github.com/Deddedd11101/psycho-landing.git /opt/psycho && bash /opt/psycho/deploy/setup-server.sh <домен-или-IP> https://github.com/Deddedd11101/psycho-landing.git
 ```
 
-При `USE_POLLING=true` бот работает в том же процессе — вебхук и Upstash не нужны,
-хватит хранилища в памяти. Для автозапуска используйте systemd, pm2 или Docker,
-а спереди поставьте nginx с HTTPS.
+Затем положите `.env` в `/opt/psycho/.env` (в нём `PUBLIC_URL` должен указывать на адрес сайта,
+`USE_POLLING=true`) и выполните `systemctl restart psycho`.
+
+**Обновление** после `git push`:
+
+```bash
+bash /opt/psycho/deploy/update.sh
+```
+
+**HTTPS** после привязки домена (A-запись на IP сервера):
+
+```bash
+certbot --nginx -d ваш-домен.ru
+```
+
+Полезное: логи — `journalctl -u psycho -f`, статус — `systemctl status psycho`,
+проверка — `curl http://localhost:3001/api/health`.
 
 ---
 
