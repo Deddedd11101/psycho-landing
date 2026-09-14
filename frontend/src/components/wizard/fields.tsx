@@ -19,6 +19,8 @@ interface TextFieldProps {
   inputMode?: 'text' | 'tel' | 'numeric';
   maxLength?: number;
   autoFocus?: boolean;
+  /** Подпись остаётся для скринридеров, но не занимает место — смысл несёт placeholder. */
+  labelHidden?: boolean;
 }
 
 /** Однострочное текстовое поле с подписью и ошибкой. */
@@ -34,10 +36,11 @@ export function TextField({
   inputMode,
   maxLength,
   autoFocus,
+  labelHidden,
 }: TextFieldProps) {
   return (
     <div className="field">
-      <label className="field__label" htmlFor={id}>
+      <label className={`field__label${labelHidden ? ' visually-hidden' : ''}`} htmlFor={id}>
         {label}
         {optional && <span className="field__optional">необязательно</span>}
       </label>

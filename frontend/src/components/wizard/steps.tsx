@@ -7,7 +7,6 @@ import { TOPIC_OPTIONS, GENDER_LABELS, topicLabel } from '@shared/topics';
 
 import type { WizardData } from '../../types';
 import { formatAge } from '../../utils/format';
-import { formatDateLong } from '../../utils/slots';
 import type { FieldErrors } from '../../utils/validation';
 import { FieldError, OptionCard, TextAreaField, TextField } from './fields';
 
@@ -62,29 +61,32 @@ export function StepPersonal({ data, errors, onChange }: StepProps) {
         {errors.gender && <FieldError>{errors.gender}</FieldError>}
       </div>
 
-      <TextField
-        id="wizard-age"
-        label="Возраст"
-        placeholder="Например, 29"
-        type="number"
-        inputMode="numeric"
-        value={data.age}
-        error={errors.age}
-        onChange={(value) => onChange({ age: value.replace(/\D/g, '').slice(0, 3) })}
-      />
+      {/* На широких экранах возраст и телефон стоят в один ряд — так шаг помещается без прокрутки. */}
+      <div className="field-row">
+        <TextField
+          id="wizard-age"
+          label="Возраст"
+          placeholder="Например, 29"
+          type="number"
+          inputMode="numeric"
+          value={data.age}
+          error={errors.age}
+          onChange={(value) => onChange({ age: value.replace(/\D/g, '').slice(0, 3) })}
+        />
 
-      <TextField
-        id="wizard-phone"
-        label="Телефон"
-        placeholder="+7 (900) 000-00-00"
-        type="tel"
-        inputMode="tel"
-        optional
-        value={data.phone}
-        error={errors.phone}
-        maxLength={30}
-        onChange={(value) => onChange({ phone: value })}
-      />
+        <TextField
+          id="wizard-phone"
+          label="Телефон"
+          placeholder="+7 (900) 000-00-00"
+          type="tel"
+          inputMode="tel"
+          optional
+          value={data.phone}
+          error={errors.phone}
+          maxLength={30}
+          onChange={(value) => onChange({ phone: value })}
+        />
+      </div>
     </div>
   );
 }
@@ -105,11 +107,9 @@ export function StepTopics({ data, errors, onChange }: StepProps) {
   return (
     <div>
       <h3 className="step__title">С чем хотите поработать?</h3>
-      <p className="step__hint">
-        Можно выбрать несколько пунктов — часто темы связаны между собой. Если ничего не подходит, впишите свой вариант.
-      </p>
+      <p className="step__hint">Можно отметить несколько пунктов. Если ничего не подходит — впишите свой вариант.</p>
 
-      <div className="options" role="group" aria-label="Направления работы">
+      <div className="options options--columns" role="group" aria-label="Направления работы">
         {TOPIC_OPTIONS.map((option) => (
           <OptionCard
             key={option.key}
@@ -125,11 +125,12 @@ export function StepTopics({ data, errors, onChange }: StepProps) {
       </div>
       {errors.topics && <FieldError>{errors.topics}</FieldError>}
 
-      <div style={{ marginTop: 20 }}>
+      <div style={{ marginTop: 12 }}>
         <TextField
           id="wizard-custom-topic"
           label="Свой вариант"
-          placeholder="Опишите тему своими словами"
+          labelHidden
+          placeholder="Свой вариант — опишите тему своими словами"
           optional
           value={data.customTopic}
           error={errors.customTopic}
@@ -175,20 +176,23 @@ export function StepRequest({ data, errors, onChange }: StepProps) {
 interface StepSummaryProps extends StepProps {
   /** Вернуться к первому шагу для правки данных. */
   onEdit: () => void;
-  /** Перейти к выбору даты и времени. */
-  onBooking: () => void;
-  /** Просто связаться с психологом без записи. */
-  onContact: () => void;
 }
 
-export function StepSummary({ data, errors, onChange, onEdit, onBooking, onContact }: StepSummaryProps) {
+/**
+ * Финальный шаг: сводка и согласие. Сами действия («Выбрать время» и
+ * «Написать в Telegram») живут в футере окна — так они всегда на виду
+ * и выглядят как кнопки, а не как варианты ответа.
+ */
+export function StepSummary({ data, errors, onChange, onEdit }: StepSummaryProps) {
   // Собираем перечень направлений: выбранные из списка + свой вариант.
   const topics = [...data.topics.map(topicLabel), ...(data.customTopic ? [data.customTopic] : [])];
 
   return (
     <div>
       <h3 className="step__title">Проверьте данные</h3>
-      <p className="step__hint">Так ваша анкета придёт психологу. Если что-то не так — вернитесь и поправьте.</p>
+      <p className="step__hint">
+        Так анкета придёт психологу. Дальше — выбрать время встречи или просто написать в Telegram.
+      </p>
 
       <div className="summary">
         <div className="summary__row">
@@ -217,43 +221,8 @@ export function StepSummary({ data, errors, onChange, onEdit, onBooking, onConta
             <span className="summary__value summary__value--quote">«{data.request}»</span>
           </div>
         )}
-        {data.bookingDate && data.bookingTime && (
-          <div className="summary__row">
-            <span className="summary__label">Встреча</span>
-            <span className="summary__value">
-              {formatDateLong(data.bookingDate)}, {data.bookingTime}
-            </span>
-          </div>
-        )}
-      </div>
-
-      <button type="button" className="summary__edit" onClick={onEdit}>
-        Изменить ответы
-      </button>
-
-      <h4 className="step__title" style={{ fontSize: 18, marginTop: 28, marginBottom: 12 }}>
-        Что делаем дальше?
-      </h4>
-
-      <div className="final-actions">
-        <button type="button" className="final-action final-action--primary" onClick={onBooking}>
-          <span className="final-action__icon" aria-hidden="true">
-            🗓
-          </span>
-          <span className="final-action__body">
-            <span className="final-action__title">Записаться на сессию</span>
-            <span className="final-action__text">Выберите дату и время — подтверждение придёт в Telegram</span>
-          </span>
-        </button>
-
-        <button type="button" className="final-action" onClick={onContact}>
-          <span className="final-action__icon" aria-hidden="true">
-            💬
-          </span>
-          <span className="final-action__body">
-            <span className="final-action__title">Связаться в Telegram</span>
-            <span className="final-action__text">Без записи: сначала обсудим детали в переписке</span>
-          </span>
+        <button type="button" className="summary__edit" onClick={onEdit}>
+          Изменить ответы
         </button>
       </div>
 
@@ -266,11 +235,11 @@ export function StepSummary({ data, errors, onChange, onEdit, onBooking, onConta
           style={{ width: 20, height: 20, marginTop: 2, flexShrink: 0, accentColor: 'var(--color-accent)' }}
         />
         <span>
-          Я согласен(на) на обработку персональных данных и ознакомлен(а) с{' '}
+          Согласен(на) на обработку персональных данных —{' '}
           <a href="#privacy" target="_blank" rel="noreferrer">
-            политикой конфиденциальности
+            политика конфиденциальности
           </a>
-          . Данные передаются только психологу и не публикуются.
+          . Анкету видит только психолог.
         </span>
       </label>
       {errors.consent && <FieldError>{errors.consent}</FieldError>}

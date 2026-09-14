@@ -16,13 +16,14 @@
 import { buildPsychologistLink } from './config.js';
 import {
   confirmationForClient,
+  confirmationPingForPsychologist,
   confirmedLeadForPsychologist,
   expiredSessionMessage,
   fallbackMessage,
   welcomeMessage,
 } from './messages.js';
 import { localSessionApi, type SessionApi } from './sessionApi.js';
-import { sendMessage, sendToPsychologist } from './telegram.js';
+import { editPsychologistMessage, sendMessage, sendToPsychologist } from './telegram.js';
 import type { TelegramClient } from './types.js';
 
 /** Минимальный набор полей апдейта, который нам нужен (полная схема Bot API гораздо шире). */
@@ -129,10 +130,24 @@ async function handleStartWithSession(
 
   if (alreadyConfirmed) return;
 
-  await sendToPsychologist(
-    confirmedLeadForPsychologist(session),
-    session.client?.username
-      ? [{ text: '💬 Открыть чат с клиентом', url: `https://t.me/${session.client.username}` }]
-      : undefined,
-  );
+  const cardText = confirmedLeadForPsychologist(session);
+  const cardButtons = session.client?.username
+    ? [{ text: '💬 Открыть чат с клиентом', url: `https://t.me/${session.client.username}` }]
+    : undefined;
+
+  // Карточку заявки редактируем на месте, чтобы в чате психолога не копились дубли.
+  // Если исходное сообщение не сохранилось или удалено — отправляем новое.
+  const edited =
+    session.psychologistMessageId !== undefined &&
+    (await editPsychologistMessage(session.psychologistMessageId, cardText, cardButtons));
+
+  if (!edited) {
+    await sendToPsychologist(cardText, cardButtons);
+    return;
+  }
+
+  // Редактирование не вызывает уведомления — шлём короткий ответ на карточку.
+  await sendToPsychologist(confirmationPingForPsychologist(session), undefined, {
+    replyTo: session.psychologistMessageId,
+  });
 }

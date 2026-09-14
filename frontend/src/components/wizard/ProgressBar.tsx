@@ -1,6 +1,7 @@
 /**
  * Индикатор прогресса воронки: пронумерованные точки и соединяющие их линии.
  * Пройденные шаги отмечаются галочкой, текущий подсвечивается.
+ * Текстовая подпись «Шаг N из 4» выводится в заголовке окна (см. WizardModal).
  */
 
 interface ProgressBarProps {
@@ -42,9 +43,6 @@ export function ProgressBar({ current, labels }: ProgressBarProps) {
           );
         })}
       </div>
-      <p className="progress__label">
-        Шаг {current} из {labels.length} — {labels[current - 1]}
-      </p>
     </div>
   );
 }

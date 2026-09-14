@@ -23,7 +23,7 @@ import { ErrorScreen, SuccessScreen } from './ResultScreens';
 import { StepPersonal, StepRequest, StepSummary, StepTopics } from './steps';
 
 /** Подписи шагов для индикатора прогресса. */
-const STEP_LABELS = ['О вас', 'Запрос', 'Подробности', 'Подтверждение'];
+const STEP_LABELS = ['О вас', 'Запрос', 'Подробности', 'Проверка'];
 
 const TOTAL_STEPS = STEP_LABELS.length;
 
@@ -303,8 +303,6 @@ export function WizardModal({ isOpen, onClose }: WizardModalProps) {
               setDirection('back');
               setStep(1);
             }}
-            onBooking={handleBookingClick}
-            onContact={handleContactClick}
           />
         )}
       </div>
@@ -333,6 +331,24 @@ export function WizardModal({ isOpen, onClose }: WizardModalProps) {
       );
     }
 
+    // Финальный шаг: два настоящих действия. Основное — выбрать время,
+    // второстепенное — написать в Telegram без записи.
+    if (step === TOTAL_STEPS) {
+      return (
+        <div className="wizard__footer wizard__footer--final">
+          <button type="button" className="button button--ghost" onClick={goBack} aria-label="Назад">
+            ←
+          </button>
+          <button type="button" className="button button--secondary" onClick={handleContactClick}>
+            Написать в Telegram
+          </button>
+          <button type="button" className="button button--primary" onClick={handleBookingClick}>
+            Выбрать дату и время
+          </button>
+        </div>
+      );
+    }
+
     return (
       <div className="wizard__footer">
         {step > 1 && (
@@ -340,11 +356,9 @@ export function WizardModal({ isOpen, onClose }: WizardModalProps) {
             ← Назад
           </button>
         )}
-        {step < TOTAL_STEPS && (
-          <button type="button" className="button button--primary" onClick={goNext}>
-            Далее
-          </button>
-        )}
+        <button type="button" className="button button--primary" onClick={goNext}>
+          Далее
+        </button>
       </div>
     );
   }
@@ -368,7 +382,13 @@ export function WizardModal({ isOpen, onClose }: WizardModalProps) {
             <h2 className="wizard__title" id="wizard-title">
               Запись на консультацию
             </h2>
-            <p className="wizard__subtitle">Займёт около двух минут</p>
+            <p className="wizard__subtitle">
+              {screen === 'form'
+                ? `Шаг ${step} из ${TOTAL_STEPS} · ${STEP_LABELS[step - 1]}`
+                : screen === 'calendar'
+                  ? 'Последний шаг · дата и время'
+                  : 'Займёт около двух минут'}
+            </p>
           </div>
           <button type="button" className="wizard__close" onClick={handleClose} aria-label="Закрыть окно записи">
             ✕

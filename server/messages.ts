@@ -134,6 +134,19 @@ export function confirmedLeadForPsychologist(session: SessionRecord): string {
   ].join('\n');
 }
 
+/**
+ * Короткая строка-уведомление психологу после подтверждения.
+ * Отправляется ответом на карточку заявки: сама карточка редактируется без уведомления,
+ * а эта строка гарантирует, что подтверждение не пройдёт незамеченным.
+ */
+export function confirmationPingForPsychologist(session: SessionRecord): string {
+  const name = escapeHtml(session.form.name);
+  if (session.intent === 'booking' && session.slot) {
+    return `✅ ${name} подтвердил(а) запись: ${escapeHtml(formatDateRu(session.slot.date))}, ${escapeHtml(session.slot.time)}`;
+  }
+  return `💬 ${name} открыл(а) бота — можно писать`;
+}
+
 /** Подтверждение клиенту: что записали, куда приходить и как связаться. */
 export function confirmationForClient(session: SessionRecord): string {
   const name = escapeHtml(session.form.name);

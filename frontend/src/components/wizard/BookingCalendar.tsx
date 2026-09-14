@@ -46,10 +46,7 @@ export function BookingCalendar({ data, onChange, booked, isLoading }: BookingCa
   return (
     <div className="step">
       <h3 className="step__title">Выберите время</h3>
-      <p className="step__hint">
-        Встреча длится 60 минут. Время указано московское. Занятые слоты в списке не показываются — если удобного времени
-        нет, напишите, подберём индивидуально.
-      </p>
+      <p className="step__hint">Встреча длится 60 минут, время московское. Занятое время в списке не показывается.</p>
 
       {isLoading ? (
         <p className="calendar__empty">Загружаем свободное время…</p>

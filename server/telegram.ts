@@ -49,41 +49,94 @@ export async function callTelegram<T>(method: string, payload: Record<string, un
   return data.result as T;
 }
 
+/** Собирает inline-клавиатуру: каждая кнопка на своей строке. */
+function keyboard(buttons?: InlineButton[]): Record<string, unknown> {
+  return buttons && buttons.length > 0 ? { reply_markup: { inline_keyboard: buttons.map((button) => [button]) } } : {};
+}
+
+/** Дополнительные параметры отправки. */
+export interface SendOptions {
+  /** Ответить на конкретное сообщение (получатель увидит цитату). */
+  replyTo?: number;
+}
+
 /**
- * Отправляет сообщение в чат.
- * Текст форматируется как HTML — не забудьте экранировать пользовательский ввод (см. escapeHtml).
+ * Отправляет сообщение в чат и возвращает его message_id — он нужен, чтобы позже
+ * отредактировать сообщение. Текст в HTML — пользовательский ввод экранируется через escapeHtml.
  */
 export async function sendMessage(
   chatId: string | number,
   text: string,
   buttons?: InlineButton[],
-): Promise<void> {
-  await callTelegram('sendMessage', {
+  options: SendOptions = {},
+): Promise<number> {
+  const result = await callTelegram<{ message_id: number }>('sendMessage', {
     chat_id: chatId,
     text,
     parse_mode: 'HTML',
     disable_web_page_preview: true,
-    ...(buttons && buttons.length > 0
-      ? { reply_markup: { inline_keyboard: buttons.map((button) => [button]) } }
-      : {}),
+    ...(options.replyTo ? { reply_parameters: { message_id: options.replyTo } } : {}),
+    ...keyboard(buttons),
+  });
+  return result.message_id;
+}
+
+/** Меняет текст (и кнопки) уже отправленного ботом сообщения. */
+export async function editMessage(
+  chatId: string | number,
+  messageId: number,
+  text: string,
+  buttons?: InlineButton[],
+): Promise<void> {
+  await callTelegram('editMessageText', {
+    chat_id: chatId,
+    message_id: messageId,
+    text,
+    parse_mode: 'HTML',
+    disable_web_page_preview: true,
+    ...keyboard(buttons),
   });
 }
 
 /**
- * Отправляет сообщение психологу. Если chat_id не настроен — не роняем сценарий клиента,
- * а пишем предупреждение в лог: заявка всё равно сохранена в сессии.
+ * Отправляет сообщение психологу и возвращает его message_id (или null при ошибке).
+ * Если chat_id не настроен — не роняем сценарий клиента, а пишем предупреждение в лог:
+ * заявка всё равно сохранена в сессии.
  */
-export async function sendToPsychologist(text: string, buttons?: InlineButton[]): Promise<boolean> {
+export async function sendToPsychologist(
+  text: string,
+  buttons?: InlineButton[],
+  options: SendOptions = {},
+): Promise<number | null> {
   if (!config.psychologistChatId) {
     console.warn('[telegram] PSYCHOLOGIST_CHAT_ID не задан — уведомление психологу не отправлено');
-    return false;
+    return null;
   }
 
   try {
-    await sendMessage(config.psychologistChatId, text, buttons);
-    return true;
+    return await sendMessage(config.psychologistChatId, text, buttons, options);
   } catch (error) {
     console.error('[telegram] Не удалось отправить сообщение психологу:', error);
+    return null;
+  }
+}
+
+/**
+ * Редактирует сообщение в чате психолога. Возвращает false, если не получилось
+ * (например, сообщение удалено) — тогда вызывающий код отправит новое.
+ */
+export async function editPsychologistMessage(
+  messageId: number,
+  text: string,
+  buttons?: InlineButton[],
+): Promise<boolean> {
+  if (!config.psychologistChatId) return false;
+
+  try {
+    await editMessage(config.psychologistChatId, messageId, text, buttons);
+    return true;
+  } catch (error) {
+    console.error('[telegram] Не удалось отредактировать сообщение психологу:', error);
     return false;
   }
 }

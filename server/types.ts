@@ -64,6 +64,11 @@ export interface SessionRecord {
   client?: TelegramClient;
   /** Психолог уже получил первичное уведомление о заявке. */
   psychologistNotified: boolean;
+  /**
+   * message_id карточки заявки в чате психолога. При подтверждении клиентом
+   * карточка редактируется на месте, а не дублируется новым сообщением.
+   */
+  psychologistMessageId?: number;
   /** Момент, когда клиент подтвердил заявку в боте (Unix ms). */
   confirmedAt?: number;
 }

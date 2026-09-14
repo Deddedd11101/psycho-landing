@@ -71,9 +71,11 @@ export async function createSession(payload: SubmitFormRequest): Promise<SubmitF
   }
 
   // Ошибка отправки не должна ломать пользовательский сценарий: заявка уже сохранена.
-  const notified = await sendToPsychologist(newLeadForPsychologist(record));
-  if (notified) {
+  // message_id запоминаем: при подтверждении карточка будет отредактирована, а не продублирована.
+  const messageId = await sendToPsychologist(newLeadForPsychologist(record));
+  if (messageId !== null) {
     record.psychologistNotified = true;
+    record.psychologistMessageId = messageId;
     await sessionStore.set(record);
   }
 
