@@ -1,30 +1,18 @@
 /**
- * Расписание приёма.
+ * Построение календаря записи.
  *
- * Сетка рабочих часов задана здесь (SCHEDULE) — правьте её под реальный график.
- * Занятое время приходит с сервера (GET /api/slots) и передаётся в getAvailableDays:
- * слот, на который кто-то уже записался, из календаря пропадает.
+ * Рабочие часы и занятое время приходят с сервера (GET /api/slots): специалист
+ * правит расписание в Mini App, и сайт сразу показывает актуальные слоты.
+ * Пока ответ не пришёл, используется расписание по умолчанию (@shared/schedule).
  */
 
-/** Рабочие часы по дням недели: 0 — воскресенье, 6 — суббота. */
-const SCHEDULE: Record<number, string[]> = {
-  1: ['10:00', '12:00', '15:00', '17:00', '19:00'], // понедельник
-  2: ['10:00', '12:00', '15:00', '17:00', '19:00'], // вторник
-  3: ['12:00', '15:00', '17:00', '19:00'], // среда
-  4: ['10:00', '12:00', '15:00', '17:00', '19:00'], // четверг
-  5: ['10:00', '12:00', '15:00'], // пятница
-  6: ['11:00', '13:00'], // суббота
-  // Воскресенье — выходной, поэтому ключа 0 нет.
-};
+import { DEFAULT_SCHEDULE } from '@shared/schedule';
+import type { ScheduleSettings } from '@shared/types';
 
 /** Занятые слоты: дата YYYY-MM-DD -> список времени. Приходят с сервера (GET /api/slots). */
 export type BookedSlots = Record<string, string[]>;
 
-/** За сколько часов до встречи закрываем запись. */
-const MIN_HOURS_BEFORE = 12;
-
-/** Сколько дней вперёд показываем в календаре. */
-const DAYS_AHEAD = 14;
+export type { ScheduleSettings };
 
 /** Один доступный день с набором свободного времени. */
 export interface AvailableDay {
@@ -54,19 +42,23 @@ export function toDateKey(date: Date): string {
 }
 
 /**
- * Возвращает список дней со свободным временем на ближайшие две недели.
+ * Возвращает список дней со свободным временем в горизонте записи.
  * Занятое время (booked) исключается, дни без свободных слотов не показываются.
  */
-export function getAvailableDays(booked: BookedSlots = {}, now: Date = new Date()): AvailableDay[] {
+export function getAvailableDays(
+  booked: BookedSlots = {},
+  schedule: ScheduleSettings = DEFAULT_SCHEDULE,
+  now: Date = new Date(),
+): AvailableDay[] {
   const days: AvailableDay[] = [];
   const todayKey = toDateKey(now);
   // Ближайший момент, на который ещё можно записаться.
-  const earliest = new Date(now.getTime() + MIN_HOURS_BEFORE * 60 * 60 * 1000);
+  const earliest = new Date(now.getTime() + schedule.minHoursBefore * 60 * 60 * 1000);
 
-  for (let offset = 0; offset < DAYS_AHEAD; offset += 1) {
+  for (let offset = 0; offset < schedule.horizonDays; offset += 1) {
     const date = new Date(now.getFullYear(), now.getMonth(), now.getDate() + offset);
-    const scheduled = SCHEDULE[date.getDay()];
-    if (!scheduled) continue;
+    const scheduled = schedule.days[String(date.getDay())];
+    if (!scheduled || scheduled.length === 0) continue;
 
     const dateKey = toDateKey(date);
     const busy = booked[dateKey] ?? [];

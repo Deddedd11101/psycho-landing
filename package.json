@@ -19,7 +19,8 @@
     "start": "npm run start --workspace backend",
     "bot:set-webhook": "npm run set-webhook --workspace bot",
     "bot:delete-webhook": "npm run delete-webhook --workspace bot",
-    "bot:whoami": "npm run whoami --workspace bot"
+    "bot:whoami": "npm run whoami --workspace bot",
+    "bot:set-menu": "npm run set-menu --workspace bot"
   },
   "devDependencies": {
     "@types/node": "^22.10.2",

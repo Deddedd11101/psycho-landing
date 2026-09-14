@@ -2,8 +2,7 @@
  * Клиент API. Единственное место, где фронтенд ходит на сервер.
  */
 
-import type { ClientForm, Intent, SubmitFormResponse } from '@shared/types';
-import type { BookingSlot } from '@shared/types';
+import type { BookingSlot, ClientForm, Intent, SlotsResponse, SubmitFormResponse } from '@shared/types';
 
 /**
  * Базовый адрес API.
@@ -25,19 +24,17 @@ export class ApiRequestError extends Error {
 }
 
 /**
- * Загружает занятое время (дата -> список времени).
- * Ошибка не критична: при сбое показываем все слоты, а занятость всё равно
- * проверяется на сервере в момент отправки заявки.
+ * Загружает расписание специалиста и занятое время.
+ * Возвращает null при сбое — календарь тогда строится по расписанию по умолчанию,
+ * а занятость всё равно проверяется на сервере в момент отправки заявки.
  */
-export async function fetchBookedSlots(): Promise<Record<string, string[]>> {
+export async function fetchSlots(): Promise<SlotsResponse | null> {
   try {
     const response = await fetch(`${API_BASE_URL}/api/slots`);
-    if (!response.ok) return {};
-
-    const data = (await response.json()) as { booked?: Record<string, string[]> };
-    return data.booked ?? {};
+    if (!response.ok) return null;
+    return (await response.json()) as SlotsResponse;
   } catch {
-    return {};
+    return null;
   }
 }
 

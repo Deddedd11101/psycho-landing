@@ -32,5 +32,12 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     sourcemap: false,
+    // Две страницы: лендинг (index.html) и Mini App специалиста (app.html -> /app).
+    rollupOptions: {
+      input: {
+        main: path.resolve(currentDir, 'index.html'),
+        app: path.resolve(currentDir, 'app.html'),
+      },
+    },
   },
 });

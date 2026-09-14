@@ -7,9 +7,16 @@ import { randomBytes } from 'node:crypto';
 
 import { buildBotDeepLink, buildPsychologistLink } from './config.js';
 import { newLeadForPsychologist } from './messages.js';
-import { sessionStore, type BookedSlots } from './store.js';
+import { DEFAULT_SCHEDULE } from './schedule.js';
+import { sessionStore, sessionStatus, type BookedSlots, type ListSessionsFilter } from './store.js';
 import { sendToPsychologist } from './telegram.js';
-import type { SessionRecord, SubmitFormRequest, SubmitFormResponse, TelegramClient } from './types.js';
+import type {
+  ScheduleSettings,
+  SessionRecord,
+  SubmitFormRequest,
+  SubmitFormResponse,
+  TelegramClient,
+} from './types.js';
 
 /**
  * Генерирует идентификатор заявки.
@@ -46,20 +53,23 @@ export async function getBookedSlots(): Promise<BookedSlots> {
  * закроет вкладку и не нажмёт «Start», заявка всё равно дойдёт до специалиста.
  */
 export async function createSession(payload: SubmitFormRequest): Promise<SubmitFormResponse> {
+  const id = generateSessionId();
+
   // Слот занимаем сразу при отправке анкеты: иначе два человека успеют выбрать
   // одно и то же время, пока первый подтверждает заявку в боте.
   if (payload.slot) {
-    const reserved = await sessionStore.reserveSlot(payload.slot.date, payload.slot.time);
+    const reserved = await sessionStore.reserveSlot(payload.slot.date, payload.slot.time, id);
     if (!reserved) throw new SlotTakenError();
   }
 
   const record: SessionRecord = {
-    id: generateSessionId(),
+    id,
     createdAt: Date.now(),
     intent: payload.intent,
     form: payload.form,
     ...(payload.slot ? { slot: payload.slot } : {}),
     psychologistNotified: false,
+    status: 'pending',
   };
 
   try {
@@ -111,7 +121,49 @@ export async function attachClient(
   if (!alreadyConfirmed) {
     session.confirmedAt = Date.now();
   }
+  // Отменённую заявку подтверждение не «воскрешает».
+  if (sessionStatus(session) !== 'cancelled') {
+    session.status = 'confirmed';
+  }
   await sessionStore.set(session);
 
   return { session, alreadyConfirmed };
+}
+
+/* ------------------------------------------------------------------ */
+/* Функции для Mini App специалиста                                    */
+/* ------------------------------------------------------------------ */
+
+/** Заявки по фильтру (для календаря записей). */
+export async function listSessions(filter: ListSessionsFilter): Promise<SessionRecord[]> {
+  return sessionStore.listSessions(filter);
+}
+
+/**
+ * Отменяет заявку: помечает статус и освобождает слот.
+ * Возвращает обновлённую запись или null, если заявки нет.
+ */
+export async function cancelSession(id: string): Promise<SessionRecord | null> {
+  const session = await getSession(id);
+  if (!session) return null;
+  if (sessionStatus(session) === 'cancelled') return session;
+
+  session.status = 'cancelled';
+  session.cancelledAt = Date.now();
+  await sessionStore.set(session);
+
+  if (session.slot) {
+    await sessionStore.releaseSlot(session.slot.date, session.slot.time);
+  }
+  return session;
+}
+
+/** Действующее расписание: заданное специалистом или по умолчанию. */
+export async function getSchedule(): Promise<ScheduleSettings> {
+  return (await sessionStore.getSchedule()) ?? DEFAULT_SCHEDULE;
+}
+
+/** Сохраняет расписание, заданное специалистом. */
+export async function saveSchedule(schedule: ScheduleSettings): Promise<void> {
+  await sessionStore.setSchedule(schedule);
 }

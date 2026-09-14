@@ -10,7 +10,7 @@ import { useEffect, useMemo } from 'react';
 import { FORMAT_LABELS } from '@shared/topics';
 
 import type { SessionFormat, WizardData } from '../../types';
-import { getAvailableDays, type BookedSlots } from '../../utils/slots';
+import { getAvailableDays, type BookedSlots, type ScheduleSettings } from '../../utils/slots';
 import { OptionCard } from './fields';
 
 interface BookingCalendarProps {
@@ -18,13 +18,15 @@ interface BookingCalendarProps {
   onChange: (patch: Partial<WizardData>) => void;
   /** Занятое время, полученное с сервера. */
   booked: BookedSlots;
+  /** Рабочие часы специалиста; undefined — ещё не загружены (берём по умолчанию). */
+  schedule?: ScheduleSettings;
   /** Идёт загрузка расписания. */
   isLoading: boolean;
 }
 
-export function BookingCalendar({ data, onChange, booked, isLoading }: BookingCalendarProps) {
-  // Пересчитываем список дней при каждом обновлении занятых слотов.
-  const days = useMemo(() => getAvailableDays(booked), [booked]);
+export function BookingCalendar({ data, onChange, booked, schedule, isLoading }: BookingCalendarProps) {
+  // Пересчитываем список дней при каждом обновлении расписания или занятых слотов.
+  const days = useMemo(() => getAvailableDays(booked, schedule), [booked, schedule]);
 
   const selectedDay = days.find((day) => day.date === data.bookingDate);
 
@@ -52,7 +54,7 @@ export function BookingCalendar({ data, onChange, booked, isLoading }: BookingCa
         <p className="calendar__empty">Загружаем свободное время…</p>
       ) : days.length === 0 ? (
         <p className="calendar__empty">
-          Свободных слотов на ближайшие две недели нет. Напишите в Telegram — подберём время вручную.
+          Свободного времени в ближайшие дни нет. Напишите в Telegram — подберём время вручную.
         </p>
       ) : (
         <>

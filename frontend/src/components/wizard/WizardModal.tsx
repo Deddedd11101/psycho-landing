@@ -10,11 +10,11 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-import { ApiRequestError, fetchBookedSlots, submitForm } from '../../api/client';
+import { ApiRequestError, fetchSlots, submitForm } from '../../api/client';
 import { psychologist } from '../../data/content';
 import { useWizardState } from '../../hooks/useWizardState';
 import type { ClientForm, Gender, Intent, SubmitFormResponse, WizardScreen } from '../../types';
-import { formatDateLong, type BookedSlots } from '../../utils/slots';
+import { formatDateLong, type BookedSlots, type ScheduleSettings } from '../../utils/slots';
 import { validateStep, type FieldErrors } from '../../utils/validation';
 import { BookingCalendar } from './BookingCalendar';
 import { Loader } from './Loader';
@@ -49,8 +49,9 @@ export function WizardModal({ isOpen, onClose }: WizardModalProps) {
    * а на экране успеха слот всё ещё нужно показать.
    */
   const [confirmedSlotLabel, setConfirmedSlotLabel] = useState<string | undefined>(undefined);
-  /** Занятое время, полученное с сервера, и признак его загрузки. */
+  /** Расписание и занятое время с сервера; признак загрузки. */
   const [bookedSlots, setBookedSlots] = useState<BookedSlots>({});
+  const [schedule, setSchedule] = useState<ScheduleSettings | undefined>(undefined);
   const [slotsLoading, setSlotsLoading] = useState(false);
 
   const bodyRef = useRef<HTMLDivElement>(null);
@@ -93,7 +94,11 @@ export function WizardModal({ isOpen, onClose }: WizardModalProps) {
   const loadSlots = useCallback(async (): Promise<void> => {
     setSlotsLoading(true);
     try {
-      setBookedSlots(await fetchBookedSlots());
+      const data = await fetchSlots();
+      if (data) {
+        setBookedSlots(data.booked);
+        setSchedule(data.schedule);
+      }
     } finally {
       setSlotsLoading(false);
     }
@@ -277,7 +282,13 @@ export function WizardModal({ isOpen, onClose }: WizardModalProps) {
     if (screen === 'calendar') {
       return (
         <div className={direction === 'back' ? 'step step--back' : 'step'}>
-          <BookingCalendar data={data} onChange={update} booked={bookedSlots} isLoading={slotsLoading} />
+          <BookingCalendar
+            data={data}
+            onChange={update}
+            booked={bookedSlots}
+            schedule={schedule}
+            isLoading={slotsLoading}
+          />
           {errors.slot && (
             <div className="alert" role="alert">
               <span aria-hidden="true">⚠</span>

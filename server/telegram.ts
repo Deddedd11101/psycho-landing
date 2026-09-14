@@ -17,10 +17,11 @@ export class TelegramError extends Error {
   }
 }
 
-/** Кнопка-ссылка в inline-клавиатуре. */
+/** Кнопка в inline-клавиатуре: обычная ссылка или запуск Mini App (web_app). */
 export interface InlineButton {
   text: string;
-  url: string;
+  url?: string;
+  web_app?: { url: string };
 }
 
 /** Вызывает произвольный метод Bot API. */

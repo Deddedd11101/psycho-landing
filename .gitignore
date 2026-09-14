@@ -12,6 +12,9 @@ build/
 .env.local
 .env.*.local
 
+# база данных SQLite
+data/
+
 # логи и служебные файлы
 *.log
 npm-debug.log*

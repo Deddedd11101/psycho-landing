@@ -55,9 +55,17 @@ export const config = {
   /** Запускать ли long-polling вместе с Express-сервером. */
   usePolling: envBool('USE_POLLING', true),
 
-  /** Настройки Upstash Redis (опционально). */
+  /** Настройки Upstash Redis (опционально, для Vercel). */
   upstashUrl: env('UPSTASH_REDIS_REST_URL'),
   upstashToken: env('UPSTASH_REDIS_REST_TOKEN'),
+
+  /**
+   * Тип хранилища: 'sqlite' (по умолчанию) или 'memory' (только для разработки).
+   * Upstash включается автоматически при наличии UPSTASH_* и имеет приоритет.
+   */
+  storeKind: (env('STORE') === 'memory' ? 'memory' : 'sqlite') as 'memory' | 'sqlite',
+  /** Путь к файлу базы SQLite. По умолчанию — data/psycho.db в корне проекта. */
+  dbPath: env('DB_PATH') ?? 'data/psycho.db',
 
   /** Время жизни сессии в секундах. */
   sessionTtlSeconds: envNumber('SESSION_TTL_SECONDS', 60 * 60 * 24),
@@ -71,6 +79,15 @@ export function buildBotDeepLink(sessionId: string): string {
 /** Прямая ссылка на личный аккаунт психолога. */
 export function buildPsychologistLink(): string {
   return `https://t.me/${config.psychologistUsername}`;
+}
+
+/**
+ * Адрес Mini App специалиста. Telegram открывает Mini App только по HTTPS,
+ * поэтому возвращаем null, пока сайт работает по http.
+ */
+export function buildMiniAppUrl(): string | null {
+  const base = config.publicUrl.replace(/\/$/, '');
+  return base.startsWith('https://') ? `${base}/app` : null;
 }
 
 /**

@@ -13,7 +13,7 @@
  *     а психологу — полную анкету со ссылкой на клиента.
  */
 
-import { buildPsychologistLink } from './config.js';
+import { buildMiniAppUrl, buildPsychologistLink, config } from './config.js';
 import {
   confirmationForClient,
   confirmationPingForPsychologist,
@@ -85,10 +85,37 @@ export async function handleUpdate(update: TelegramUpdate, api: SessionApi = loc
       return;
     }
 
+    // Кабинет специалиста — только для владельца (PSYCHOLOGIST_CHAT_ID).
+    if (text === '/app') {
+      await handleAppCommand(client);
+      return;
+    }
+
     await sendMessage(client.chatId, fallbackMessage());
   } catch (error) {
     console.error('[bot] Ошибка обработки апдейта:', error);
   }
+}
+
+/** Отвечает на /app: кнопка, открывающая Mini App с записями. */
+async function handleAppCommand(client: TelegramClient): Promise<void> {
+  if (String(client.chatId) !== config.psychologistChatId) {
+    await sendMessage(client.chatId, fallbackMessage());
+    return;
+  }
+
+  const url = buildMiniAppUrl();
+  if (!url) {
+    await sendMessage(
+      client.chatId,
+      'Кабинет с записями откроется, когда сайт будет работать по HTTPS — Telegram не открывает Mini App по http.',
+    );
+    return;
+  }
+
+  await sendMessage(client.chatId, '🗓 Записи, обращения и расписание — в кабинете:', [
+    { text: 'Открыть кабинет', web_app: { url } },
+  ]);
 }
 
 /** Обрабатывает /start с идентификатором заявки. */

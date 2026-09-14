@@ -51,6 +51,14 @@ export interface TelegramClient {
   lastName?: string;
 }
 
+/**
+ * Статус заявки:
+ * - `pending` — анкета отправлена, клиент ещё не подтвердил в боте;
+ * - `confirmed` — клиент нажал «Start» в боте;
+ * - `cancelled` — отменена специалистом (слот освобождён).
+ */
+export type SessionStatus = 'pending' | 'confirmed' | 'cancelled';
+
 /** Запись о сессии заполнения формы, хранящаяся на сервере до подтверждения в боте. */
 export interface SessionRecord {
   /** Короткий идентификатор, который передаётся в deep-link боту. */
@@ -71,6 +79,30 @@ export interface SessionRecord {
   psychologistMessageId?: number;
   /** Момент, когда клиент подтвердил заявку в боте (Unix ms). */
   confirmedAt?: number;
+  /** Текущий статус заявки. Старые записи без поля считаются pending/confirmed по confirmedAt. */
+  status?: SessionStatus;
+  /** Момент отмены специалистом (Unix ms). */
+  cancelledAt?: number;
+}
+
+/**
+ * Настройки расписания приёма. Хранятся на сервере, правятся специалистом
+ * через Mini App; сайт получает их вместе с занятыми слотами (GET /api/slots).
+ */
+export interface ScheduleSettings {
+  /** Рабочие часы по дням недели: '0' — воскресенье … '6' — суббота. Нет ключа — выходной. */
+  days: Record<string, string[]>;
+  /** На сколько дней вперёд открыта запись. */
+  horizonDays: number;
+  /** За сколько часов до встречи запись закрывается. */
+  minHoursBefore: number;
+}
+
+/** Ответ GET /api/slots. */
+export interface SlotsResponse {
+  /** Занятое время: дата -> список времени. */
+  booked: Record<string, string[]>;
+  schedule: ScheduleSettings;
 }
 
 /** Тело запроса POST /api/submit-form. */

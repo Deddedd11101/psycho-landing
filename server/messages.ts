@@ -147,6 +147,34 @@ export function confirmationPingForPsychologist(session: SessionRecord): string 
   return `💬 ${name} открыл(а) бота — можно писать`;
 }
 
+/** Карточка у специалиста после отмены записи. */
+export function cancelledLeadForPsychologist(session: SessionRecord): string {
+  return [
+    '❌ <b>Запись отменена</b>',
+    '',
+    clientCard(session),
+    ...slotLines(session),
+    '',
+    `<code>ID заявки: ${session.id}</code>`,
+  ].join('\n');
+}
+
+/** Сообщение клиенту об отмене записи специалистом. */
+export function cancellationForClient(session: SessionRecord): string {
+  const name = escapeHtml(session.form.name);
+  const when = session.slot
+    ? ` на ${escapeHtml(formatDateRu(session.slot.date))}, ${escapeHtml(session.slot.time)}`
+    : '';
+  return [
+    `${name}, здравствуйте.`,
+    '',
+    `К сожалению, встречу${when} приходится отменить. Приношу извинения за неудобства.`,
+    '',
+    `Давайте подберём другое время — напишите мне: ${buildPsychologistLink()}`,
+    `Или выберите новый слот на сайте: ${escapeHtml(config.publicUrl)}`,
+  ].join('\n');
+}
+
 /** Подтверждение клиенту: что записали, куда приходить и как связаться. */
 export function confirmationForClient(session: SessionRecord): string {
   const name = escapeHtml(session.form.name);

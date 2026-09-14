@@ -17,6 +17,12 @@ import { fileURLToPath } from 'node:url';
 
 import express from 'express';
 
+import {
+  handleAdminBookings,
+  handleAdminCancel,
+  handleAdminInbox,
+  handleAdminSchedule,
+} from '../../server/adminRoutes.js';
 import { config, missingTelegramConfig } from '../../server/config.js';
 import { startPolling } from '../../server/polling.js';
 import {
@@ -64,6 +70,20 @@ app.all('/api/booking', (req, res) => {
   void handleBooking(req, res as never);
 });
 
+// Mini App специалиста.
+app.all('/api/admin/bookings', (req, res) => {
+  void handleAdminBookings(req.query as Record<string, unknown>, req, res as never);
+});
+app.all('/api/admin/inbox', (req, res) => {
+  void handleAdminInbox(req, res as never);
+});
+app.all('/api/admin/cancel', (req, res) => {
+  void handleAdminCancel(req, res as never);
+});
+app.all('/api/admin/schedule', (req, res) => {
+  void handleAdminSchedule(req, res as never);
+});
+
 app.post('/api/telegram/webhook', (req, res) => {
   void handleTelegramWebhook(req, res as never);
 });
@@ -76,6 +96,11 @@ app.post('/api/telegram/webhook', (req, res) => {
 const currentDir = path.dirname(fileURLToPath(import.meta.url));
 const frontendDist = path.resolve(currentDir, '../../frontend/dist');
 app.use(express.static(frontendDist));
+
+// Mini App специалиста живёт на отдельной странице.
+app.get('/app', (_req, res) => {
+  res.sendFile(path.join(frontendDist, 'app.html'));
+});
 
 // SPA-фолбэк: любой не-API маршрут отдаёт index.html.
 app.get(/^\/(?!api\/).*/, (_req, res) => {

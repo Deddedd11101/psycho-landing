@@ -10,7 +10,8 @@
     "start": "tsx src/index.ts",
     "set-webhook": "tsx src/setWebhook.ts",
     "delete-webhook": "tsx src/setWebhook.ts --delete",
-    "whoami": "tsx src/whoami.ts"
+    "whoami": "tsx src/whoami.ts",
+    "set-menu": "tsx src/setMenu.ts"
   },
   "dependencies": {
     "dotenv": "^16.4.7"
