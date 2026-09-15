@@ -22,9 +22,11 @@ interface BookingCalendarProps {
   schedule?: ScheduleSettings;
   /** Идёт загрузка расписания. */
   isLoading: boolean;
+  /** «Не нашли время — написать без записи». */
+  onContactInstead: () => void;
 }
 
-export function BookingCalendar({ data, onChange, booked, schedule, isLoading }: BookingCalendarProps) {
+export function BookingCalendar({ data, onChange, booked, schedule, isLoading, onContactInstead }: BookingCalendarProps) {
   // Пересчитываем список дней при каждом обновлении расписания или занятых слотов.
   const days = useMemo(() => getAvailableDays(booked, schedule), [booked, schedule]);
 
@@ -46,15 +48,19 @@ export function BookingCalendar({ data, onChange, booked, schedule, isLoading }:
   }, [days, data.bookingDate, data.bookingTime, onChange]);
 
   return (
-    <div className="step">
-      <h3 className="step__title">Выберите время</h3>
-      <p className="step__hint">Встреча длится 60 минут, время московское. Занятое время в списке не показывается.</p>
+    <div>
+      <h3 className="step__title">Когда вам удобно?</h3>
+      <p className="step__hint">Первая встреча — знакомство на 20 минут. Время московское, занятые слоты не показываются.</p>
 
       {isLoading ? (
         <p className="calendar__empty">Загружаем свободное время…</p>
       ) : days.length === 0 ? (
         <p className="calendar__empty">
-          Свободного времени в ближайшие дни нет. Напишите в Telegram — подберём время вручную.
+          Свободного времени в ближайшие дни нет.{' '}
+          <button type="button" className="link-button" onClick={onContactInstead}>
+            Напишите
+          </button>{' '}
+          — подберём вручную.
         </p>
       ) : (
         <>
@@ -124,6 +130,14 @@ export function BookingCalendar({ data, onChange, booked, schedule, isLoading }:
               ))}
             </div>
           </div>
+
+          <p className="calendar__alt">
+            Нет подходящего времени?{' '}
+            <button type="button" className="link-button" onClick={onContactInstead}>
+              Напишите без записи
+            </button>{' '}
+            — подберём вместе.
+          </p>
         </>
       )}
     </div>

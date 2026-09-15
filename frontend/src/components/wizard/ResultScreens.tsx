@@ -6,6 +6,7 @@
  * сам открыл диалог с ботом. Ссылка вида t.me/bot?start=<id> решает это в один клик.
  */
 
+import { whatsappLink } from '../../data/content';
 import type { Intent, SubmitFormResponse } from '../../types';
 
 interface SuccessScreenProps {
@@ -18,6 +19,7 @@ interface SuccessScreenProps {
 
 export function SuccessScreen({ result, intent, slotLabel, onClose }: SuccessScreenProps) {
   const isBooking = intent === 'booking';
+  const whatsapp = whatsappLink();
 
   return (
     <div className="result">
@@ -28,11 +30,11 @@ export function SuccessScreen({ result, intent, slotLabel, onClose }: SuccessScr
       <p className="result__text">
         {isBooking && slotLabel ? (
           <>
-            Психолог уже получил вашу анкету и время встречи: <strong>{slotLabel}</strong>. Остался один шаг —
-            подтвердите запись в Telegram.
+            Заявка на <strong>{slotLabel}</strong> у психолога. Остался один шаг — подтвердите запись в Telegram,
+            чтобы получить напоминание и ссылку на встречу.
           </>
         ) : (
-          <>Психолог уже получил вашу анкету. Остался один шаг — откройте Telegram, чтобы он смог вам ответить.</>
+          <>Заявка у психолога. Остался один шаг — откройте Telegram, чтобы он смог вам ответить.</>
         )}
       </p>
 
@@ -69,6 +71,11 @@ export function SuccessScreen({ result, intent, slotLabel, onClose }: SuccessScr
         >
           Написать психологу напрямую
         </a>
+        {whatsapp && (
+          <a className="button button--secondary button--block" href={whatsapp} target="_blank" rel="noreferrer">
+            Нет Telegram — написать в WhatsApp
+          </a>
+        )}
       </div>
 
       <button type="button" className="button button--ghost button--block" style={{ marginTop: 12 }} onClick={onClose}>

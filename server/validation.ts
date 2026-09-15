@@ -40,24 +40,22 @@ export function validateForm(input: unknown): ValidationResult<ClientForm> {
     errors.name = `Имя слишком длинное (максимум ${LIMITS.name} символов)`;
   }
 
+  // Пол и возраст необязательны: если пришли — проверяем, если нет — пропускаем.
   const gender = str(raw.gender);
-  if (!GENDERS.has(gender)) {
+  if (gender && !GENDERS.has(gender)) {
     errors.gender = 'Выберите один из вариантов';
   }
 
-  const age = Number(raw.age);
-  if (!Number.isFinite(age) || !Number.isInteger(age)) {
-    errors.age = 'Возраст должен быть числом';
-  } else if (age < 18 || age > 100) {
+  const ageProvided = raw.age !== undefined && raw.age !== null && raw.age !== '';
+  const age = ageProvided ? Number(raw.age) : undefined;
+  if (age !== undefined && (!Number.isInteger(age) || age < 18 || age > 100)) {
     errors.age = 'Возраст должен быть от 18 до 100 лет';
   }
 
+  // Направления — подсказка для специалиста, необязательны.
   const topicsRaw = Array.isArray(raw.topics) ? raw.topics : [];
   const topics = topicsRaw.filter((item): item is string => typeof item === 'string');
   const customTopic = str(raw.customTopic);
-  if (topics.length === 0 && customTopic.length === 0) {
-    errors.topics = 'Выберите хотя бы одно направление или впишите свой вариант';
-  }
   if (customTopic.length > LIMITS.customTopic) {
     errors.customTopic = `Слишком длинно (максимум ${LIMITS.customTopic} символов)`;
   }
@@ -89,8 +87,8 @@ export function validateForm(input: unknown): ValidationResult<ClientForm> {
     ok: true,
     value: {
       name,
-      gender: gender as ClientForm['gender'],
-      age,
+      ...(gender ? { gender: gender as ClientForm['gender'] } : {}),
+      ...(age !== undefined ? { age } : {}),
       topics,
       ...(customTopic ? { customTopic } : {}),
       ...(request ? { request } : {}),

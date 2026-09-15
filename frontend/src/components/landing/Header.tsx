@@ -32,9 +32,6 @@ export function Header({ onStart }: HeaderProps) {
       <div className="container">
         <div className="header__inner">
           <a className="header__logo" href="#top">
-            <span className="header__logo-mark" aria-hidden="true">
-              🌿
-            </span>
             <span className="header__logo-text">
               {psychologist.name}
               <small>{psychologist.roleShort}</small>
@@ -81,7 +78,7 @@ export function Header({ onStart }: HeaderProps) {
                 onStart();
               }}
             >
-              Пройти опрос и записаться
+              Записаться
             </button>
           </nav>
         )}

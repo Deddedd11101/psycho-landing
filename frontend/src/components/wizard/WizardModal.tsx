@@ -1,11 +1,13 @@
 /**
- * Модальное окно воронки — центральный компонент всей записи.
+ * Окно записи — два шага.
  *
- * Сценарий:
- *   шаги 1–3 (анкета) → шаг 4 (сводка + выбор действия)
- *     ├─ «Связаться в Telegram»   → отправка (intent: contact)
- *     └─ «Записаться на сессию»   → календарь → отправка (intent: booking)
- *   → прелоадер → экран успеха со ссылкой на бота (или экран ошибки).
+ *   шаг 1: календарь (дата, время, формат)
+ *          └─ «написать без записи» → шаг 2 в режиме contact
+ *   шаг 2: короткая анкета (имя, телефон, что беспокоит, согласие)
+ *   → отправка → экран успеха со ссылкой на бота (или экран ошибки)
+ *
+ * Сначала время, потом анкета: человеку важнее сразу увидеть, есть ли
+ * подходящий слот, чем рассказывать о себе.
  */
 
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -13,19 +15,17 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { ApiRequestError, fetchSlots, submitForm } from '../../api/client';
 import { psychologist } from '../../data/content';
 import { useWizardState } from '../../hooks/useWizardState';
-import type { ClientForm, Gender, Intent, SubmitFormResponse, WizardScreen } from '../../types';
+import type { ClientForm, Intent, SubmitFormResponse, WizardScreen } from '../../types';
 import { formatDateLong, type BookedSlots, type ScheduleSettings } from '../../utils/slots';
-import { validateStep, type FieldErrors } from '../../utils/validation';
+import { validateDetails, validateSlot, type FieldErrors } from '../../utils/validation';
 import { BookingCalendar } from './BookingCalendar';
 import { Loader } from './Loader';
 import { ProgressBar } from './ProgressBar';
 import { ErrorScreen, SuccessScreen } from './ResultScreens';
-import { StepPersonal, StepRequest, StepSummary, StepTopics } from './steps';
+import { StepDetails } from './steps';
 
 /** Подписи шагов для индикатора прогресса. */
-const STEP_LABELS = ['О вас', 'Запрос', 'Подробности', 'Проверка'];
-
-const TOTAL_STEPS = STEP_LABELS.length;
+const STEP_LABELS = ['Время', 'О вас'];
 
 interface WizardModalProps {
   isOpen: boolean;
@@ -35,18 +35,17 @@ interface WizardModalProps {
 export function WizardModal({ isOpen, onClose }: WizardModalProps) {
   const { data, update, reset } = useWizardState();
 
-  const [screen, setScreen] = useState<WizardScreen>('form');
-  const [step, setStep] = useState(1);
+  const [screen, setScreen] = useState<WizardScreen>('calendar');
+  /** Что делает клиент: записывается на время или просто пишет. */
+  const [intent, setIntent] = useState<Intent>('booking');
   const [errors, setErrors] = useState<FieldErrors>({});
   /** Направление анимации перехода: вперёд или назад. */
   const [direction, setDirection] = useState<'forward' | 'back'>('forward');
   const [result, setResult] = useState<SubmitFormResponse | null>(null);
-  const [intent, setIntent] = useState<Intent>('booking');
   const [errorMessage, setErrorMessage] = useState('');
   /**
-   * Дата и время записи, зафиксированные на момент отправки.
-   * Нужны отдельно, потому что после успешной отправки анкета очищается,
-   * а на экране успеха слот всё ещё нужно показать.
+   * Дата и время, зафиксированные на момент отправки: анкета после успеха
+   * очищается, а на экране успеха слот ещё нужно показать.
    */
   const [confirmedSlotLabel, setConfirmedSlotLabel] = useState<string | undefined>(undefined);
   /** Расписание и занятое время с сервера; признак загрузки. */
@@ -60,13 +59,28 @@ export function WizardModal({ isOpen, onClose }: WizardModalProps) {
   /* Побочные эффекты окна                                            */
   /* --------------------------------------------------------------- */
 
-  // Блокируем прокрутку страницы под модальным окном.
+  /** Подгружает расписание и занятое время с сервера. */
+  const loadSlots = useCallback(async (): Promise<void> => {
+    setSlotsLoading(true);
+    try {
+      const fresh = await fetchSlots();
+      if (fresh) {
+        setBookedSlots(fresh.booked);
+        setSchedule(fresh.schedule);
+      }
+    } finally {
+      setSlotsLoading(false);
+    }
+  }, []);
+
+  // Открытие окна: блокируем прокрутку страницы и подгружаем расписание.
   useEffect(() => {
     if (!isOpen) return;
 
     document.body.classList.add('is-locked');
+    void loadSlots();
     return () => document.body.classList.remove('is-locked');
-  }, [isOpen]);
+  }, [isOpen, loadSlots]);
 
   // Закрытие по Escape — привычное поведение модальных окон.
   useEffect(() => {
@@ -80,59 +94,45 @@ export function WizardModal({ isOpen, onClose }: WizardModalProps) {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isOpen, onClose]);
 
-  // При смене шага прокручиваем содержимое наверх: иначе на мобильных
-  // новый шаг открывается в середине.
+  // При смене экрана прокручиваем содержимое наверх.
   useEffect(() => {
     bodyRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
-  }, [step, screen]);
+  }, [screen]);
 
   /* --------------------------------------------------------------- */
-  /* Навигация по шагам                                               */
+  /* Навигация                                                        */
   /* --------------------------------------------------------------- */
 
-  /** Подгружает занятое время с сервера — вызывается перед показом календаря. */
-  const loadSlots = useCallback(async (): Promise<void> => {
-    setSlotsLoading(true);
-    try {
-      const data = await fetchSlots();
-      if (data) {
-        setBookedSlots(data.booked);
-        setSchedule(data.schedule);
-      }
-    } finally {
-      setSlotsLoading(false);
-    }
-  }, []);
+  /** Календарь → анкета (запись на выбранное время). */
+  function goToDetails(): void {
+    const slotErrors = validateSlot(data);
+    setErrors(slotErrors);
+    if (Object.keys(slotErrors).length > 0) return;
 
-  /** Переход к следующему шагу с проверкой текущего. */
-  function goNext(): void {
-    const stepErrors = validateStep(step, data);
-    setErrors(stepErrors);
-    if (Object.keys(stepErrors).length > 0) return;
-
+    setIntent('booking');
     setDirection('forward');
-    setStep((current) => Math.min(current + 1, TOTAL_STEPS));
+    setScreen('form');
   }
 
-  /** Возврат на шаг назад (или из календаря к сводке). */
+  /** Календарь → анкета без времени («написать без записи»). */
+  function goToContact(): void {
+    setErrors({});
+    setIntent('contact');
+    setDirection('forward');
+    setScreen('form');
+  }
+
+  /** Анкета → календарь. */
   function goBack(): void {
     setErrors({});
     setDirection('back');
-
-    if (screen === 'calendar') {
-      setScreen('form');
-      return;
-    }
-
-    setStep((current) => Math.max(current - 1, 1));
+    setScreen('calendar');
   }
 
   /** Собирает данные анкеты в формат, который ждёт сервер. */
   const buildForm = useCallback((): ClientForm => {
     return {
       name: data.name.trim(),
-      gender: data.gender as Gender,
-      age: Number(data.age),
       topics: data.topics,
       ...(data.customTopic.trim() ? { customTopic: data.customTopic.trim() } : {}),
       ...(data.request.trim() ? { request: data.request.trim() } : {}),
@@ -145,90 +145,64 @@ export function WizardModal({ isOpen, onClose }: WizardModalProps) {
   /* Отправка заявки                                                  */
   /* --------------------------------------------------------------- */
 
-  const send = useCallback(
-    async (selectedIntent: Intent): Promise<void> => {
-      setIntent(selectedIntent);
-      setScreen('sending');
-      setErrorMessage('');
-      setConfirmedSlotLabel(
-        selectedIntent === 'booking' && data.bookingDate && data.bookingTime
-          ? `${formatDateLong(data.bookingDate)}, ${data.bookingTime}`
-          : undefined,
-      );
+  const send = useCallback(async (): Promise<void> => {
+    setScreen('sending');
+    setErrorMessage('');
+    setConfirmedSlotLabel(
+      intent === 'booking' && data.bookingDate && data.bookingTime
+        ? `${formatDateLong(data.bookingDate)}, ${data.bookingTime}`
+        : undefined,
+    );
 
-      try {
-        const response = await submitForm({
-          intent: selectedIntent,
-          form: buildForm(),
-          ...(selectedIntent === 'booking'
-            ? { slot: { date: data.bookingDate, time: data.bookingTime, format: data.format } }
-            : {}),
-        });
+    try {
+      const response = await submitForm({
+        intent,
+        form: buildForm(),
+        ...(intent === 'booking'
+          ? { slot: { date: data.bookingDate, time: data.bookingTime, format: data.format } }
+          : {}),
+      });
 
-        setResult(response);
-        setScreen('success');
-        // Черновик больше не нужен: заявка ушла.
-        reset();
-      } catch (error) {
-        const message =
-          error instanceof ApiRequestError
-            ? error.message
-            : 'Неизвестная ошибка. Попробуйте ещё раз или напишите психологу напрямую.';
+      setResult(response);
+      setScreen('success');
+      // Черновик больше не нужен: заявка ушла.
+      reset();
+    } catch (error) {
+      const message =
+        error instanceof ApiRequestError
+          ? error.message
+          : 'Неизвестная ошибка. Попробуйте ещё раз или напишите психологу напрямую.';
 
-        setErrorMessage(message);
+      setErrorMessage(message);
 
-        // Слот заняли, пока клиент заполнял анкету: возвращаем к календарю
-        // и подтягиваем актуальное расписание.
-        if (error instanceof ApiRequestError && error.details?.slot) {
-          setErrors({ slot: error.details.slot });
-          setScreen('calendar');
-          void loadSlots();
-          return;
-        }
-
-        // Если сервер вернул ошибки по полям — возвращаем человека к анкете.
-        if (error instanceof ApiRequestError && error.details) {
-          setErrors(error.details);
-          setScreen('form');
-          setStep(1);
-          return;
-        }
-
-        setScreen('error');
+      // Слот заняли, пока клиент заполнял анкету: возвращаем к календарю
+      // и подтягиваем актуальное расписание.
+      if (error instanceof ApiRequestError && error.details?.slot) {
+        setErrors({ slot: error.details.slot });
+        setDirection('back');
+        setScreen('calendar');
+        void loadSlots();
+        return;
       }
-    },
-    [buildForm, data.bookingDate, data.bookingTime, data.format, loadSlots, reset],
-  );
 
-  /** «Записаться на сессию» на шаге 4: сначала проверяем согласие. */
-  function handleBookingClick(): void {
-    const stepErrors = validateStep(4, data);
-    setErrors(stepErrors);
-    if (Object.keys(stepErrors).length > 0) return;
+      // Сервер вернул ошибки по полям — показываем их в анкете.
+      if (error instanceof ApiRequestError && error.details) {
+        setErrors(error.details);
+        setScreen('form');
+        return;
+      }
 
-    setDirection('forward');
-    setScreen('calendar');
-    void loadSlots();
-  }
-
-  /** «Связаться с психологом» на шаге 4. */
-  function handleContactClick(): void {
-    const stepErrors = validateStep(4, data);
-    setErrors(stepErrors);
-    if (Object.keys(stepErrors).length > 0) return;
-
-    void send('contact');
-  }
-
-  /** Подтверждение выбранного слота в календаре. */
-  function handleConfirmBooking(): void {
-    if (!data.bookingDate || !data.bookingTime) {
-      setErrors({ slot: 'Выберите дату и время встречи' });
-      return;
+      setScreen('error');
     }
+  }, [buildForm, data.bookingDate, data.bookingTime, data.format, intent, loadSlots, reset]);
 
-    setErrors({});
-    void send('booking');
+  /** Кнопка «Отправить» на анкете. */
+  function handleSubmit(): void {
+    const detailErrors = validateDetails(data);
+    setErrors(detailErrors);
+    if (Object.keys(detailErrors).length > 0) return;
+
+    void send();
   }
 
   /** Полный сброс состояния окна — вызывается при закрытии. */
@@ -238,8 +212,8 @@ export function WizardModal({ isOpen, onClose }: WizardModalProps) {
     // Сбрасываем с задержкой, чтобы пользователь не увидел «прыжок» контента
     // во время анимации закрытия.
     window.setTimeout(() => {
-      setScreen('form');
-      setStep(1);
+      setScreen('calendar');
+      setIntent('booking');
       setErrors({});
       setResult(null);
       setErrorMessage('');
@@ -253,14 +227,13 @@ export function WizardModal({ isOpen, onClose }: WizardModalProps) {
   /* Рендер                                                           */
   /* --------------------------------------------------------------- */
 
+  const stepClass = direction === 'back' ? 'step step--back' : 'step';
+
   /** Содержимое тела окна зависит от текущего экрана. */
   function renderBody() {
     if (screen === 'sending') {
       return (
-        <Loader
-          title="Отправляем заявку…"
-          hint="Передаём анкету психологу и готовим ссылку на подтверждение в Telegram."
-        />
+        <Loader title="Отправляем заявку…" hint="Передаём данные психологу и готовим ссылку на подтверждение в Telegram." />
       );
     }
 
@@ -273,7 +246,7 @@ export function WizardModal({ isOpen, onClose }: WizardModalProps) {
         <ErrorScreen
           message={errorMessage}
           psychologistLink={psychologist.telegram}
-          onRetry={() => void send(intent)}
+          onRetry={() => void send()}
           onClose={handleClose}
         />
       );
@@ -281,13 +254,14 @@ export function WizardModal({ isOpen, onClose }: WizardModalProps) {
 
     if (screen === 'calendar') {
       return (
-        <div className={direction === 'back' ? 'step step--back' : 'step'}>
+        <div className={stepClass} key="calendar">
           <BookingCalendar
             data={data}
             onChange={update}
             booked={bookedSlots}
             schedule={schedule}
             isLoading={slotsLoading}
+            onContactInstead={goToContact}
           />
           {errors.slot && (
             <div className="alert" role="alert">
@@ -299,23 +273,9 @@ export function WizardModal({ isOpen, onClose }: WizardModalProps) {
       );
     }
 
-    // Экран анкеты: шаги 1–4.
-    const stepProps = { data, errors, onChange: update };
-
     return (
-      <div className={direction === 'back' ? 'step step--back' : 'step'} key={step}>
-        {step === 1 && <StepPersonal {...stepProps} />}
-        {step === 2 && <StepTopics {...stepProps} />}
-        {step === 3 && <StepRequest {...stepProps} />}
-        {step === 4 && (
-          <StepSummary
-            {...stepProps}
-            onEdit={() => {
-              setDirection('back');
-              setStep(1);
-            }}
-          />
-        )}
+      <div className={stepClass} key="form">
+        <StepDetails data={data} errors={errors} onChange={update} isBooking={intent === 'booking'} />
       </div>
     );
   }
@@ -327,34 +287,13 @@ export function WizardModal({ isOpen, onClose }: WizardModalProps) {
     if (screen === 'calendar') {
       return (
         <div className="wizard__footer">
-          <button type="button" className="button button--ghost" onClick={goBack}>
-            ← Назад
-          </button>
           <button
             type="button"
             className="button button--primary"
             disabled={!data.bookingDate || !data.bookingTime}
-            onClick={handleConfirmBooking}
+            onClick={goToDetails}
           >
-            Подтвердить запись
-          </button>
-        </div>
-      );
-    }
-
-    // Финальный шаг: два настоящих действия. Основное — выбрать время,
-    // второстепенное — написать в Telegram без записи.
-    if (step === TOTAL_STEPS) {
-      return (
-        <div className="wizard__footer wizard__footer--final">
-          <button type="button" className="button button--ghost" onClick={goBack} aria-label="Назад">
-            ←
-          </button>
-          <button type="button" className="button button--secondary" onClick={handleContactClick}>
-            Написать в Telegram
-          </button>
-          <button type="button" className="button button--primary" onClick={handleBookingClick}>
-            Выбрать дату и время
+            Далее
           </button>
         </div>
       );
@@ -362,19 +301,26 @@ export function WizardModal({ isOpen, onClose }: WizardModalProps) {
 
     return (
       <div className="wizard__footer">
-        {step > 1 && (
-          <button type="button" className="button button--ghost" onClick={goBack}>
-            ← Назад
-          </button>
-        )}
-        <button type="button" className="button button--primary" onClick={goNext}>
-          Далее
+        <button type="button" className="button button--ghost" onClick={goBack}>
+          ← Назад
+        </button>
+        <button type="button" className="button button--primary" onClick={handleSubmit}>
+          {intent === 'booking' ? 'Записаться' : 'Отправить'}
         </button>
       </div>
     );
   }
 
-  const showProgress = screen === 'form' || screen === 'calendar';
+  const currentStep = screen === 'calendar' ? 1 : 2;
+  const showProgress = screen === 'calendar' || screen === 'form';
+  const subtitle =
+    screen === 'calendar'
+      ? 'Шаг 1 из 2 · выберите время'
+      : screen === 'form'
+        ? intent === 'booking'
+          ? 'Шаг 2 из 2 · пара слов о себе'
+          : 'Сообщение без записи'
+        : 'Займёт около минуты';
 
   return (
     <div
@@ -391,22 +337,16 @@ export function WizardModal({ isOpen, onClose }: WizardModalProps) {
         <div className="wizard__header">
           <div>
             <h2 className="wizard__title" id="wizard-title">
-              Запись на консультацию
+              Запись на встречу
             </h2>
-            <p className="wizard__subtitle">
-              {screen === 'form'
-                ? `Шаг ${step} из ${TOTAL_STEPS} · ${STEP_LABELS[step - 1]}`
-                : screen === 'calendar'
-                  ? 'Последний шаг · дата и время'
-                  : 'Займёт около двух минут'}
-            </p>
+            <p className="wizard__subtitle">{subtitle}</p>
           </div>
           <button type="button" className="wizard__close" onClick={handleClose} aria-label="Закрыть окно записи">
             ✕
           </button>
         </div>
 
-        {showProgress && <ProgressBar current={screen === 'calendar' ? TOTAL_STEPS : step} labels={STEP_LABELS} />}
+        {showProgress && intent === 'booking' && <ProgressBar current={currentStep} labels={STEP_LABELS} />}
 
         <div className="wizard__body" ref={bodyRef}>
           {renderBody()}

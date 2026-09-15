@@ -61,11 +61,14 @@ function slotLines(session: SessionRecord): string[] {
 /** Общая «карточка клиента» — используется во всех сообщениях психологу. */
 function clientCard(session: SessionRecord): string {
   const { form } = session;
-  const lines = [
-    `👤 <b>Имя:</b> ${escapeHtml(form.name)}`,
-    `🚻 <b>Пол:</b> ${escapeHtml(GENDER_LABELS[form.gender] ?? form.gender)}`,
-    `🎂 <b>Возраст:</b> ${form.age} ${ageWord(form.age)}`,
-  ];
+  const lines = [`👤 <b>Имя:</b> ${escapeHtml(form.name)}`];
+
+  if (form.gender) {
+    lines.push(`🚻 <b>Пол:</b> ${escapeHtml(GENDER_LABELS[form.gender] ?? form.gender)}`);
+  }
+  if (form.age !== undefined) {
+    lines.push(`🎂 <b>Возраст:</b> ${form.age} ${ageWord(form.age)}`);
+  }
 
   if (form.phone) {
     lines.push(`📞 <b>Телефон:</b> ${escapeHtml(form.phone)}`);

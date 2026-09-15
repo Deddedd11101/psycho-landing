@@ -101,9 +101,11 @@ export function TextAreaField({
         aria-describedby={error ? `${id}-error` : undefined}
         onChange={(event: ChangeEvent<HTMLTextAreaElement>) => onChange(event.target.value)}
       />
-      <div className="field__counter">
-        {value.length} / {maxLength}
-      </div>
+      {value.length > maxLength * 0.7 && (
+        <div className="field__counter">
+          {value.length} / {maxLength}
+        </div>
+      )}
       {error && <FieldError id={`${id}-error`}>{error}</FieldError>}
     </div>
   );

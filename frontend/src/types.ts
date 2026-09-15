@@ -4,20 +4,17 @@
  * чтобы клиент и сервер не разъезжались.
  */
 
-import type { Gender, SessionFormat } from '@shared/types';
+import type { SessionFormat } from '@shared/types';
 
-export type { BookingSlot, ClientForm, Gender, Intent, SessionFormat, SubmitFormResponse } from '@shared/types';
+export type { BookingSlot, ClientForm, Intent, SessionFormat, SubmitFormResponse } from '@shared/types';
 
 /**
- * Состояние воронки.
- * Отличается от ClientForm тем, что поля ввода хранятся строками:
- * так проще управлять «сырым» вводом (например, пустым полем возраста).
+ * Состояние воронки: выбранное время и короткая анкета.
+ * Пол и возраст на сайте не спрашиваем — это обсуждается на встрече.
  */
 export interface WizardData {
   name: string;
-  /** Пустая строка — вариант ещё не выбран. */
-  gender: Gender | '';
-  age: string;
+  /** Направления — необязательная подсказка для специалиста. */
   topics: string[];
   customTopic: string;
   request: string;
@@ -33,8 +30,6 @@ export interface WizardData {
 /** Пустая анкета — с неё начинается воронка. */
 export const emptyWizardData: WizardData = {
   name: '',
-  gender: '',
-  age: '',
   topics: [],
   customTopic: '',
   request: '',
@@ -46,7 +41,7 @@ export const emptyWizardData: WizardData = {
 };
 
 /**
- * Экран, который сейчас показывает воронка.
- * Шаги 1–4 — анкета, дальше — выбор времени и результат.
+ * Экран, который сейчас показывает воронка:
+ * calendar (шаг 1) → form (шаг 2) → sending → success | error.
  */
-export type WizardScreen = 'form' | 'calendar' | 'sending' | 'success' | 'error';
+export type WizardScreen = 'calendar' | 'form' | 'sending' | 'success' | 'error';

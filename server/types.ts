@@ -29,8 +29,9 @@ export interface BookingSlot {
 /** Данные, которые клиент заполняет в воронке (анкета). */
 export interface ClientForm {
   name: string;
-  gender: Gender;
-  age: number;
+  /** Пол и возраст на сайте не спрашиваем (обсуждаются на встрече); поля оставлены для совместимости. */
+  gender?: Gender;
+  age?: number;
   /** Ключи выбранных направлений работы (см. TOPIC_OPTIONS на фронтенде). */
   topics: string[];
   /** Свой вариант направления, если клиент его вписал. */

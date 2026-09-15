@@ -48,9 +48,13 @@ export function statusMeta(status: SessionStatus): { label: string; tone: 'pendi
   }
 }
 
-/** «Женский, 34 года». */
+/** «Женский, 34 года» — или телефон, если пол и возраст не указаны. */
 export function describePerson(record: SessionRecord): string {
-  return `${GENDER_LABELS[record.form.gender] ?? record.form.gender}, ${record.form.age} ${ageWord(record.form.age)}`;
+  const parts: string[] = [];
+  if (record.form.gender) parts.push(GENDER_LABELS[record.form.gender] ?? record.form.gender);
+  if (record.form.age !== undefined) parts.push(`${record.form.age} ${ageWord(record.form.age)}`);
+  if (parts.length === 0 && record.form.phone) parts.push(record.form.phone);
+  return parts.join(', ');
 }
 
 /** Список направлений через запятую. */
