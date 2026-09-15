@@ -197,8 +197,14 @@ button {
   cursor: not-allowed;
 }
 
+/* Микродвижение: чуть приподнять при наведении, чуть вдавить при нажатии. */
+.button:not(:disabled):hover {
+  transform: translateY(-1px);
+}
+
 .button:not(:disabled):active {
   transform: translateY(1px);
+  transition-duration: 0.08s;
 }
 
 .button--primary {
@@ -276,6 +282,27 @@ button {
   .section__title {
     font-size: 42px;
   }
+}
+
+/* ---------- Появление блоков при прокрутке ---------- */
+
+/*
+ * Элементы с data-reveal появляются, когда попадают в экран (см. useReveal в App.tsx).
+ * Правило действует только при работающем JS (класс .js на html): без скрипта всё видно сразу.
+ * --reveal-delay задаёт лесенку для карточек в сетке.
+ */
+.js [data-reveal] {
+  opacity: 0;
+  transform: translateY(18px);
+  transition:
+    opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+  transition-delay: var(--reveal-delay, 0s);
+}
+
+.js [data-reveal].is-visible {
+  opacity: 1;
+  transform: none;
 }
 
 /* Уважаем системную настройку «уменьшить движение». */

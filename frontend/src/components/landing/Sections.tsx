@@ -6,7 +6,7 @@
  * чтобы предлоги и «₽» не висели на краю строки.
  */
 
-import { useState } from 'react';
+import { useState, type CSSProperties } from 'react';
 
 import { aboutFacts, aboutParagraphs, faq, processLines, psychologist, services, whatsappLink } from '../../data/content';
 import { typo } from '../../utils/typo';
@@ -94,13 +94,13 @@ export function About() {
   return (
     <section className="section" id="about">
       <div className="container">
-        <div className="section__header">
+        <div className="section__header" data-reveal>
           <span className="section__eyebrow">О себе</span>
           <h2 className="section__title">{psychologist.name}</h2>
           <p className="section__subtitle">{typo(psychologist.role)}</p>
         </div>
 
-        <div className="about__grid">
+        <div className="about__grid" data-reveal>
           <div className="about__text">
             {aboutParagraphs.map((paragraph, index) => (
               <p key={index}>{typo(paragraph)}</p>
@@ -129,7 +129,7 @@ export function Services({ onStart }: StartProps) {
   return (
     <section className="section section--muted" id="services">
       <div className="container">
-        <div className="section__header">
+        <div className="section__header" data-reveal>
           <span className="section__eyebrow">Услуги и цены</span>
           <h2 className="section__title">Форматы работы</h2>
           <p className="section__subtitle">
@@ -140,8 +140,13 @@ export function Services({ onStart }: StartProps) {
         </div>
 
         <div className="services__grid">
-          {services.map((service) => (
-            <article className={`service-card${service.badge ? ' service-card--featured' : ''}`} key={service.id}>
+          {services.map((service, index) => (
+            <article
+              className={`service-card${service.badge ? ' service-card--featured' : ''}`}
+              key={service.id}
+              data-reveal
+              style={{ '--reveal-delay': `${index * 0.1}s` } as CSSProperties}
+            >
               {service.badge && <span className="service-card__badge">{typo(service.badge)}</span>}
               <h3 className="service-card__title">{typo(service.title)}</h3>
               <p className="service-card__description">{typo(service.description)}</p>
@@ -183,14 +188,19 @@ export function Process() {
     <section className="section" id="process">
       <div className="container">
         <div className="process">
-          <div className="section__header">
+          <div className="section__header" data-reveal>
             <span className="section__eyebrow">Как проходит работа</span>
             <h2 className="section__title">{typo('Знакомство, сессии, итоги')}</h2>
           </div>
 
           <ol className="process__list">
             {processLines.map((line, index) => (
-              <li className="process__item" key={index}>
+              <li
+                className="process__item"
+                key={index}
+                data-reveal
+                style={{ '--reveal-delay': `${index * 0.12}s` } as CSSProperties}
+              >
                 <span className="process__number">{index + 1}</span>
                 <p>{typo(line)}</p>
               </li>
@@ -213,12 +223,12 @@ export function Faq() {
   return (
     <section className="section section--muted section--centered" id="faq">
       <div className="container">
-        <div className="section__header">
+        <div className="section__header" data-reveal>
           <span className="section__eyebrow">Вопросы</span>
           <h2 className="section__title">{typo('Что спрашивают перед записью')}</h2>
         </div>
 
-        <div className="faq__list">
+        <div className="faq__list" data-reveal>
           {faq.map((item, index) => {
             const isOpen = openIndex === index;
 
@@ -235,7 +245,11 @@ export function Faq() {
                     +
                   </span>
                 </button>
-                {isOpen && <p className="faq__answer">{typo(item.answer)}</p>}
+                <div className="faq__answer-wrap">
+                  <p className="faq__answer" aria-hidden={!isOpen}>
+                    {typo(item.answer)}
+                  </p>
+                </div>
               </div>
             );
           })}
@@ -255,7 +269,7 @@ export function CallToAction({ onStart }: StartProps) {
   return (
     <section className="cta" id="booking">
       <div className="container">
-        <div className="cta__inner">
+        <div className="cta__inner" data-reveal>
           <h2 className="cta__title">{typo('Начнём со знакомства')}</h2>
           <p className="cta__text">
             {typo(

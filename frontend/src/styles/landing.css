@@ -160,6 +160,49 @@
   padding: 108px 0 var(--section-gap);
 }
 
+/* Лесенка появления при загрузке: бейдж → заголовок → текст → кнопки → фото. */
+@keyframes hero-in {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.hero__badge,
+.hero__title,
+.hero__text,
+.hero__actions,
+.hero__note,
+.hero__stats,
+.hero__media {
+  animation: hero-in 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.hero__title {
+  animation-delay: 0.08s;
+}
+
+.hero__text {
+  animation-delay: 0.16s;
+}
+
+.hero__actions {
+  animation-delay: 0.24s;
+}
+
+.hero__note,
+.hero__stats {
+  animation-delay: 0.32s;
+}
+
+.hero__media {
+  animation-delay: 0.2s;
+}
+
 .hero__grid {
   display: grid;
   gap: 32px;
@@ -264,6 +307,14 @@
   font-size: 14px;
 }
 
+.hero__media:hover .hero__photo-card {
+  transform: translateY(-3px);
+}
+
+.hero__photo-card {
+  transition: transform var(--transition);
+}
+
 .hero__photo-card strong {
   display: block;
   font-size: 15px;
@@ -358,7 +409,7 @@
 }
 
 .service-card:hover {
-  transform: translateY(-4px);
+  transform: translateY(-3px);
   box-shadow: var(--shadow-md);
 }
 
@@ -493,6 +544,12 @@
   color: var(--color-accent-dark);
   font-size: 14px;
   font-weight: 700;
+  transition: background-color var(--transition), color var(--transition);
+}
+
+.process__item:hover .process__number {
+  background-color: var(--color-accent);
+  color: #fff;
 }
 
 /* ---------- FAQ ---------- */
@@ -537,11 +594,29 @@
   transform: rotate(45deg);
 }
 
+/* Ответ всегда в DOM; раскрывается через grid-строку 0fr → 1fr — плавно и без фиксированной высоты. */
+.faq__answer-wrap {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.faq__item--open .faq__answer-wrap {
+  grid-template-rows: 1fr;
+}
+
 .faq__answer {
-  padding: 0 22px 22px;
+  overflow: hidden;
+  padding: 0 22px;
   font-size: 15px;
   color: var(--color-text-muted);
-  animation: fade-slide-down 0.25s ease;
+  opacity: 0;
+  transition: opacity 0.3s ease, padding 0.35s ease;
+}
+
+.faq__item--open .faq__answer {
+  padding-bottom: 22px;
+  opacity: 1;
 }
 
 /* ---------- Призыв к действию ---------- */
@@ -577,22 +652,31 @@
   align-items: stretch;
 }
 
-.cta__inner .button--primary {
+/*
+ * Кнопки на зелёном фоне. Селекторы дублируют :not(:disabled), чтобы
+ * перебить общие правила ховера из global.css (иначе текст на ховере
+ * становился тёмно-зелёным на зелёном).
+ */
+.cta__inner .button:not(:disabled).button--primary {
   background-color: #fff;
   color: var(--color-accent-dark);
+  box-shadow: none;
 }
 
-.cta__inner .button--primary:hover {
-  background-color: var(--color-surface-muted);
+.cta__inner .button:not(:disabled).button--primary:hover {
+  background-color: #fff;
+  color: var(--color-accent-dark);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.16);
 }
 
-.cta__inner .button--secondary {
+.cta__inner .button:not(:disabled).button--secondary {
   background-color: transparent;
-  border-color: rgba(255, 255, 255, 0.5);
+  border-color: rgba(255, 255, 255, 0.55);
   color: #fff;
 }
 
-.cta__inner .button--secondary:hover {
+.cta__inner .button:not(:disabled).button--secondary:hover {
+  background-color: rgba(255, 255, 255, 0.12);
   border-color: #fff;
   color: #fff;
 }
