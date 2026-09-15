@@ -37,9 +37,15 @@ export const psychologist = {
   street: 'ул. Станиславского',
 } as const;
 
-/** Ссылка на чат в WhatsApp или null, если номер не задан. */
-export function whatsappLink(): string | null {
-  return psychologist.whatsapp ? `https://wa.me/${psychologist.whatsapp}` : null;
+/**
+ * Ссылка на чат в WhatsApp или null, если номер не задан.
+ * Если передан текст — он будет подставлен в поле ввода, чтобы человеку
+ * не нужно было объяснять, кто он и откуда.
+ */
+export function whatsappLink(text?: string): string | null {
+  if (!psychologist.whatsapp) return null;
+  const base = `https://wa.me/${psychologist.whatsapp}`;
+  return text ? `${base}?text=${encodeURIComponent(text)}` : base;
 }
 
 /** Абзацы блока «О себе» — её собственный текст. */

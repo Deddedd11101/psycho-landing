@@ -48,6 +48,8 @@ export function WizardModal({ isOpen, onClose }: WizardModalProps) {
    * очищается, а на экране успеха слот ещё нужно показать.
    */
   const [confirmedSlotLabel, setConfirmedSlotLabel] = useState<string | undefined>(undefined);
+  /** Имя из анкеты на момент отправки — для готового сообщения в WhatsApp. */
+  const [confirmedName, setConfirmedName] = useState('');
   /** Расписание и занятое время с сервера; признак загрузки. */
   const [bookedSlots, setBookedSlots] = useState<BookedSlots>({});
   const [schedule, setSchedule] = useState<ScheduleSettings | undefined>(undefined);
@@ -148,6 +150,7 @@ export function WizardModal({ isOpen, onClose }: WizardModalProps) {
   const send = useCallback(async (): Promise<void> => {
     setScreen('sending');
     setErrorMessage('');
+    setConfirmedName(data.name.trim());
     setConfirmedSlotLabel(
       intent === 'booking' && data.bookingDate && data.bookingTime
         ? `${formatDateLong(data.bookingDate)}, ${data.bookingTime}`
@@ -194,7 +197,7 @@ export function WizardModal({ isOpen, onClose }: WizardModalProps) {
 
       setScreen('error');
     }
-  }, [buildForm, data.bookingDate, data.bookingTime, data.format, intent, loadSlots, reset]);
+  }, [buildForm, data.name, data.bookingDate, data.bookingTime, data.format, intent, loadSlots, reset]);
 
   /** Кнопка «Отправить» на анкете. */
   function handleSubmit(): void {
@@ -218,6 +221,7 @@ export function WizardModal({ isOpen, onClose }: WizardModalProps) {
       setResult(null);
       setErrorMessage('');
       setConfirmedSlotLabel(undefined);
+      setConfirmedName('');
     }, 250);
   }
 
@@ -238,7 +242,15 @@ export function WizardModal({ isOpen, onClose }: WizardModalProps) {
     }
 
     if (screen === 'success' && result) {
-      return <SuccessScreen result={result} intent={intent} slotLabel={confirmedSlotLabel} onClose={handleClose} />;
+      return (
+        <SuccessScreen
+          result={result}
+          intent={intent}
+          slotLabel={confirmedSlotLabel}
+          clientName={confirmedName}
+          onClose={handleClose}
+        />
+      );
     }
 
     if (screen === 'error') {

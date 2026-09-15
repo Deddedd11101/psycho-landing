@@ -250,7 +250,7 @@ export function Faq() {
 /* ------------------------------------------------------------------ */
 
 export function CallToAction({ onStart }: StartProps) {
-  const whatsapp = whatsappLink();
+  const whatsapp = whatsappLink('Здравствуйте! Пишу с сайта — хочу записаться на встречу-знакомство.');
 
   return (
     <section className="cta" id="booking">

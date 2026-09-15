@@ -14,12 +14,19 @@ interface SuccessScreenProps {
   intent: Intent;
   /** Выбранные дата и время — показываем, если это запись. */
   slotLabel?: string;
+  /** Имя из анкеты — подставляем в готовое сообщение для WhatsApp. */
+  clientName: string;
   onClose: () => void;
 }
 
-export function SuccessScreen({ result, intent, slotLabel, onClose }: SuccessScreenProps) {
+export function SuccessScreen({ result, intent, slotLabel, clientName, onClose }: SuccessScreenProps) {
   const isBooking = intent === 'booking';
-  const whatsapp = whatsappLink();
+  // Готовый текст: специалист сразу видит, кто пишет и по какой заявке.
+  const whatsapp = whatsappLink(
+    isBooking && slotLabel
+      ? `Здравствуйте! Меня зовут ${clientName}, я записался(лась) на сайте на встречу-знакомство: ${slotLabel}.`
+      : `Здравствуйте! Меня зовут ${clientName}, я оставил(а) заявку на сайте — хочу обсудить консультацию.`,
+  );
 
   return (
     <div className="result">
