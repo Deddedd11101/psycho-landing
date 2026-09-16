@@ -26,7 +26,8 @@ async function main(): Promise<void> {
       chat_id: Number(config.psychologistChatId),
       menu_button: { type: 'default' },
     });
-    console.log('✅ Кнопка меню сброшена на стандартную.');
+    await callTelegram('deleteMyCommands', { scope: { type: 'chat', chat_id: Number(config.psychologistChatId) } });
+    console.log('✅ Кнопка меню и команды сброшены на стандартные.');
     return;
   }
 
@@ -41,11 +42,15 @@ async function main(): Promise<void> {
     menu_button: { type: 'web_app', text: 'Кабинет', web_app: { url } },
   });
 
-  // Заодно регистрируем команды, чтобы /app был виден в подсказках.
+  // Команды: клиентам — только /start, специалисту (в его чате) — ещё и /app.
   await callTelegram('setMyCommands', {
+    commands: [{ command: 'start', description: 'Подтвердить запись' }],
+  });
+  await callTelegram('setMyCommands', {
+    scope: { type: 'chat', chat_id: Number(config.psychologistChatId) },
     commands: [
-      { command: 'start', description: 'Подтвердить заявку' },
-      { command: 'app', description: 'Кабинет специалиста' },
+      { command: 'start', description: 'Подтвердить запись' },
+      { command: 'app', description: 'Кабинет: записи и расписание' },
     ],
   });
 

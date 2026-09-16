@@ -21,6 +21,8 @@ interface TextFieldProps {
   autoFocus?: boolean;
   /** Подпись остаётся для скринридеров, но не занимает место — смысл несёт placeholder. */
   labelHidden?: boolean;
+  onFocus?: () => void;
+  onBlur?: () => void;
 }
 
 /** Однострочное текстовое поле с подписью и ошибкой. */
@@ -37,6 +39,8 @@ export function TextField({
   maxLength,
   autoFocus,
   labelHidden,
+  onFocus,
+  onBlur,
 }: TextFieldProps) {
   return (
     <div className="field">
@@ -57,6 +61,8 @@ export function TextField({
         aria-invalid={Boolean(error)}
         aria-describedby={error ? `${id}-error` : undefined}
         onChange={(event: ChangeEvent<HTMLInputElement>) => onChange(event.target.value)}
+        onFocus={onFocus}
+        onBlur={onBlur}
       />
       {error && <FieldError id={`${id}-error`}>{error}</FieldError>}
     </div>

@@ -7,6 +7,7 @@
 import { TOPIC_OPTIONS } from '@shared/topics';
 
 import type { WizardData } from '../../types';
+import { PHONE_PREFIX, formatPhone } from '../../utils/phone';
 import { formatDateLong } from '../../utils/slots';
 import type { FieldErrors } from '../../utils/validation';
 import { FieldError, TextAreaField, TextField } from './fields';
@@ -55,14 +56,22 @@ export function StepDetails({ data, errors, onChange, isBooking }: StepDetailsPr
         <TextField
           id="wizard-phone"
           label="Телефон"
-          placeholder="+7 (900) 000-00-00"
+          placeholder="+7 (9__) ___-__-__"
           type="tel"
           inputMode="tel"
           optional
           value={data.phone}
           error={errors.phone}
-          maxLength={30}
-          onChange={(value) => onChange({ phone: value })}
+          maxLength={18}
+          // Маска: «+7» подставляется сам, человек набирает с 9.
+          onChange={(value) => onChange({ phone: formatPhone(value) })}
+          onFocus={() => {
+            if (!data.phone) onChange({ phone: PHONE_PREFIX });
+          }}
+          onBlur={() => {
+            // Ничего не набрали — убираем подставленный префикс, поле снова пустое.
+            if (data.phone === PHONE_PREFIX || data.phone === '+7') onChange({ phone: '' });
+          }}
         />
       </div>
 
