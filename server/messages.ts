@@ -197,10 +197,15 @@ export function confirmationForClient(session: SessionRecord): string {
   }
 
   const { date, time, format } = session.slot;
+  // Постоянной ссылки на видеозвонок обычно нет (Телемост создаёт новую на каждую встречу),
+  // поэтому по умолчанию говорим клиенту, что ссылку пришлёт специалист.
+  const specialist = escapeHtml(config.psychologistName);
   const place =
-    format === 'online'
-      ? `🔗 <b>Ссылка на встречу:</b> ${escapeHtml(config.meetingLink)}`
-      : `📍 <b>Адрес:</b> ${escapeHtml(config.officeAddress)}`;
+    format !== 'online'
+      ? `📍 <b>Адрес:</b> ${escapeHtml(config.officeAddress)}`
+      : config.meetingLink
+        ? `🔗 <b>Ссылка на встречу:</b> ${escapeHtml(config.meetingLink)}`
+        : `🔗 Ссылку на видеозвонок ${specialist} пришлёт вам в Telegram незадолго до встречи.`;
 
   return [
     `Здравствуйте, ${name}! 👋`,
@@ -214,7 +219,7 @@ export function confirmationForClient(session: SessionRecord): string {
     '',
     `💬 <b>Контакт специалиста:</b> ${psychologistLink}`,
     '',
-    'Знакомство длится 20 минут и проходит онлайн: расскажете, что происходит, я — как работаю, и договоримся о дальнейших встречах. Если планы изменятся, пожалуйста, предупредите заранее.',
+    'Знакомство длится 20 минут и проходит онлайн: вы расскажете, что происходит, специалист — как работает, и вместе договоритесь о дальнейших встречах. Если планы изменятся, пожалуйста, предупредите заранее.',
     '',
     '<i>До встречи!</i>',
   ].join('\n');

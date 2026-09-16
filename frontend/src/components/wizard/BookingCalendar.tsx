@@ -49,7 +49,7 @@ export function BookingCalendar({ data, onChange, booked, schedule, isLoading, o
     <div>
       <h3 className="step__title">Когда вам удобно?</h3>
       <p className="step__hint">
-        Знакомство — 20 минут онлайн, ссылку на видеозвонок пришлю в Telegram. Время московское.
+        Знакомство — 20 минут онлайн, ссылку на видеозвонок пришлю в Telegram перед встречей. Время московское.
       </p>
 
       {isLoading ? (

@@ -37,8 +37,8 @@ export function SuccessScreen({ result, intent, slotLabel, clientName, onClose }
       <p className="result__text">
         {isBooking && slotLabel ? (
           <>
-            Знакомство <strong>{slotLabel}</strong>, онлайн. Остался один шаг — подтвердите запись в Telegram, туда
-            придёт ссылка на видеозвонок.
+            Знакомство <strong>{slotLabel}</strong>, онлайн. Остался один шаг — подтвердите запись в Telegram: туда
+            придёт подтверждение, а перед встречей — ссылка на видеозвонок.
           </>
         ) : (
           <>Заявка у психолога. Остался один шаг — откройте Telegram, чтобы он смог вам ответить.</>
@@ -60,7 +60,7 @@ export function SuccessScreen({ result, intent, slotLabel, clientName, onClose }
           <span className="result__step-number">3</span>
           <span>
             {isBooking
-              ? 'Бот пришлёт подтверждение с датой, временем и ссылкой на видеозвонок.'
+              ? 'Бот пришлёт подтверждение с датой и временем. Ссылку на видеозвонок Софья пришлёт перед встречей.'
               : 'Бот передаст ваш контакт психологу, и он напишет вам лично.'}
           </span>
         </div>
