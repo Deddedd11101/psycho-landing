@@ -24,17 +24,50 @@ export interface InlineButton {
   web_app?: { url: string };
 }
 
-/** Вызывает произвольный метод Bot API. */
+/** Сколько раз повторяем запрос при сетевой ошибке и паузы между попытками. */
+const NETWORK_RETRIES = 3;
+const RETRY_DELAYS_MS = [1000, 2500, 5000];
+
+/** Сетевой сбой (нет соединения, таймаут) — в отличие от ответа Telegram с ошибкой. */
+function isNetworkError(error: unknown): boolean {
+  return error instanceof TypeError && /fetch failed/i.test(error.message);
+}
+
+/**
+ * Вызывает произвольный метод Bot API.
+ * При сетевом сбое повторяет запрос: с некоторых хостингов соединение до
+ * api.telegram.org нестабильно, и одна неудачная попытка не должна терять
+ * уведомление о заявке. Ошибки самого Telegram (4xx) не повторяются.
+ */
 export async function callTelegram<T>(method: string, payload: Record<string, unknown>): Promise<T> {
   if (!config.botToken) {
     throw new TelegramError('Не задана переменная окружения BOT_TOKEN', method);
   }
 
-  const response = await fetch(`https://api.telegram.org/bot${config.botToken}/${method}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload),
-  });
+  let response: Response | undefined;
+  for (let attempt = 0; attempt <= NETWORK_RETRIES; attempt += 1) {
+    try {
+      response = await fetch(`https://api.telegram.org/bot${config.botToken}/${method}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+        // Долгий getUpdates держит соединение сам; остальным методам хватает 20 секунд.
+        signal: AbortSignal.timeout(method === 'getUpdates' ? 60_000 : 20_000),
+      });
+      break;
+    } catch (error) {
+      const retryable = isNetworkError(error) || (error instanceof Error && error.name === 'TimeoutError');
+      if (!retryable || attempt === NETWORK_RETRIES) throw error;
+
+      const delay = RETRY_DELAYS_MS[attempt] ?? 5000;
+      console.warn(`[telegram] ${method}: сеть недоступна, повтор ${attempt + 1}/${NETWORK_RETRIES} через ${delay} мс`);
+      await new Promise((resolve) => setTimeout(resolve, delay));
+    }
+  }
+
+  if (!response) {
+    throw new TelegramError('Нет ответа от Telegram', method);
+  }
 
   const data = (await response.json()) as {
     ok: boolean;
