@@ -9,6 +9,7 @@
  * dotenv просто ничего не найдёт и не будет ругаться.
  */
 
+import dns from 'node:dns';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -18,3 +19,12 @@ const currentDir = path.dirname(fileURLToPath(import.meta.url));
 
 // server/ лежит в корне репозитория, поэтому .env — на уровень выше.
 dotenv.config({ path: path.resolve(currentDir, '../.env') });
+
+/**
+ * DNS_PREFER_IPV6=true — сначала пробовать IPv6-адреса.
+ * Нужно на серверах, где IPv4-маршрут до api.telegram.org фильтруется провайдером,
+ * а по IPv6 всё доступно. Локально (без IPv6) переменную не задавайте.
+ */
+if (process.env.DNS_PREFER_IPV6 === 'true') {
+  dns.setDefaultResultOrder('ipv6first');
+}
