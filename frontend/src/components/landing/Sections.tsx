@@ -328,7 +328,7 @@ export function Footer() {
               <a href="#about">О себе</a>
               <a href="#services">{typo('Услуги и цены')}</a>
               <a href="#process">{typo('Как проходит работа')}</a>
-              <a href="#privacy">Конфиденциальность</a>
+              <a href="/privacy">Политика конфиденциальности</a>
             </div>
           </div>
         </div>

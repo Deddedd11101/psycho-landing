@@ -102,6 +102,11 @@ app.get('/app', (_req, res) => {
   res.sendFile(path.join(frontendDist, 'app.html'));
 });
 
+// Политика конфиденциальности — отдельная страница (ссылка нужна боту и площадкам).
+app.get('/privacy', (_req, res) => {
+  res.sendFile(path.join(frontendDist, 'privacy.html'));
+});
+
 // SPA-фолбэк: любой не-API маршрут отдаёт index.html.
 app.get(/^\/(?!api\/).*/, (_req, res) => {
   res.sendFile(path.join(frontendDist, 'index.html'), (error) => {

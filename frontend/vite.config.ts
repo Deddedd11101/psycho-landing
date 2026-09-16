@@ -37,6 +37,7 @@ export default defineConfig({
       input: {
         main: path.resolve(currentDir, 'index.html'),
         app: path.resolve(currentDir, 'app.html'),
+        privacy: path.resolve(currentDir, 'privacy.html'),
       },
     },
   },

@@ -120,7 +120,7 @@ export function StepDetails({ data, errors, onChange, isBooking }: StepDetailsPr
         />
         <span>
           Согласен(на) на обработку персональных данных (
-          <a href="#privacy" target="_blank" rel="noreferrer">
+          <a href="/privacy" target="_blank" rel="noreferrer">
             политика
           </a>
           )
