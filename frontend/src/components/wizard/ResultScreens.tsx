@@ -24,7 +24,7 @@ export function SuccessScreen({ result, intent, slotLabel, clientName, onClose }
   // Готовый текст: специалист сразу видит, кто пишет и по какой заявке.
   const whatsapp = whatsappLink(
     isBooking && slotLabel
-      ? `Здравствуйте! Меня зовут ${clientName}, я записался(лась) на сайте на встречу-знакомство: ${slotLabel}.`
+      ? `Здравствуйте! Меня зовут ${clientName}, я записался(лась) на сайте на онлайн-знакомство: ${slotLabel}.`
       : `Здравствуйте! Меня зовут ${clientName}, я оставил(а) заявку на сайте — хочу обсудить консультацию.`,
   );
 
@@ -37,8 +37,8 @@ export function SuccessScreen({ result, intent, slotLabel, clientName, onClose }
       <p className="result__text">
         {isBooking && slotLabel ? (
           <>
-            Заявка на <strong>{slotLabel}</strong> у психолога. Остался один шаг — подтвердите запись в Telegram,
-            чтобы получить напоминание и ссылку на встречу.
+            Знакомство <strong>{slotLabel}</strong>, онлайн. Остался один шаг — подтвердите запись в Telegram, туда
+            придёт ссылка на видеозвонок.
           </>
         ) : (
           <>Заявка у психолога. Остался один шаг — откройте Telegram, чтобы он смог вам ответить.</>
@@ -60,7 +60,7 @@ export function SuccessScreen({ result, intent, slotLabel, clientName, onClose }
           <span className="result__step-number">3</span>
           <span>
             {isBooking
-              ? 'Бот пришлёт подтверждение с датой, временем и ссылкой на встречу.'
+              ? 'Бот пришлёт подтверждение с датой, временем и ссылкой на видеозвонок.'
               : 'Бот передаст ваш контакт психологу, и он напишет вам лично.'}
           </span>
         </div>

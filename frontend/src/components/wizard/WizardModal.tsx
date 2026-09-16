@@ -349,7 +349,7 @@ export function WizardModal({ isOpen, onClose }: WizardModalProps) {
         <div className="wizard__header">
           <div>
             <h2 className="wizard__title" id="wizard-title">
-              Запись на встречу
+              Запись на знакомство
             </h2>
             <p className="wizard__subtitle">{subtitle}</p>
           </div>

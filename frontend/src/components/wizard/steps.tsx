@@ -33,7 +33,8 @@ export function StepDetails({ data, errors, onChange, isBooking }: StepDetailsPr
       <p className="step__hint">
         {isBooking && data.bookingDate && data.bookingTime ? (
           <>
-            <strong>{formatDateLong(data.bookingDate)}, {data.bookingTime}</strong> — осталось представиться.
+            Знакомство онлайн: <strong>{formatDateLong(data.bookingDate)}, {data.bookingTime}</strong>. Осталось
+            представиться.
           </>
         ) : (
           'Оставьте имя и, если хотите, пару слов о том, что беспокоит. Ответ придёт в Telegram.'

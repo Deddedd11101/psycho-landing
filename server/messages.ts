@@ -91,8 +91,8 @@ function clientCard(session: SessionRecord): string {
 export function newLeadForPsychologist(session: SessionRecord): string {
   const header =
     session.intent === 'booking'
-      ? '🆕 <b>Новая заявка на запись</b>'
-      : '🆕 <b>Новая заявка на консультацию</b>';
+      ? '🆕 <b>Новая запись на знакомство</b>'
+      : '🆕 <b>Новое обращение с сайта</b>';
 
   return [
     header,
@@ -113,7 +113,7 @@ export function confirmedLeadForPsychologist(session: SessionRecord): string {
   const client = session.client;
   const header =
     session.intent === 'booking'
-      ? '✅ <b>Клиент подтвердил запись</b>'
+      ? '✅ <b>Клиент подтвердил знакомство</b>'
       : '💬 <b>Клиент готов к диалогу</b>';
 
   const contactLines: string[] = [];
@@ -145,7 +145,7 @@ export function confirmedLeadForPsychologist(session: SessionRecord): string {
 export function confirmationPingForPsychologist(session: SessionRecord): string {
   const name = escapeHtml(session.form.name);
   if (session.intent === 'booking' && session.slot) {
-    return `✅ ${name} подтвердил(а) запись: ${escapeHtml(formatDateRu(session.slot.date))}, ${escapeHtml(session.slot.time)}`;
+    return `✅ ${name} подтвердил(а) знакомство: ${escapeHtml(formatDateRu(session.slot.date))}, ${escapeHtml(session.slot.time)}`;
   }
   return `💬 ${name} открыл(а) бота — можно писать`;
 }
@@ -205,7 +205,7 @@ export function confirmationForClient(session: SessionRecord): string {
   return [
     `Здравствуйте, ${name}! 👋`,
     '',
-    '✅ <b>Вы записаны на консультацию</b>',
+    '✅ <b>Вы записаны на встречу-знакомство</b>',
     '',
     `🗓 <b>Дата:</b> ${escapeHtml(formatDateRu(date))}`,
     `⏰ <b>Время:</b> ${escapeHtml(time)} (мск)`,
@@ -214,7 +214,7 @@ export function confirmationForClient(session: SessionRecord): string {
     '',
     `💬 <b>Контакт специалиста:</b> ${psychologistLink}`,
     '',
-    'Длительность встречи — 60 минут. Если планы изменятся, пожалуйста, предупредите не позднее чем за 24 часа.',
+    'Знакомство длится 20 минут и проходит онлайн: расскажете, что происходит, я — как работаю, и договоримся о дальнейших встречах. Если планы изменятся, пожалуйста, предупредите заранее.',
     '',
     '<i>До встречи!</i>',
   ].join('\n');

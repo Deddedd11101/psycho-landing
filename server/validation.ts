@@ -113,9 +113,10 @@ function validateSlot(input: unknown): ValidationResult<BookingSlot> {
     errors.time = 'Выберите время';
   }
 
-  const format = str(raw.format);
+  // Знакомство всегда онлайн; формат оставлен в контракте на будущее.
+  const format = str(raw.format) || 'online';
   if (!FORMATS.has(format)) {
-    errors.format = 'Выберите формат встречи';
+    errors.format = 'Неизвестный формат встречи';
   }
 
   if (Object.keys(errors).length > 0) {
