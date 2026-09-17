@@ -81,7 +81,7 @@ function loadMetrika(id: string): void {
 
   const script = document.createElement('script');
   script.async = true;
-  script.src = 'https://mc.yandex.ru/metrika/tag.js';
+  script.src = `https://mc.yandex.ru/metrika/tag.js?id=${id}`;
   document.head.appendChild(script);
 
   // Стандартная заглушка: складывает вызовы до загрузки скрипта.
@@ -92,6 +92,9 @@ function loadMetrika(id: string): void {
   (w.ym as { a?: unknown[][]; l?: number }).a = queue;
   (w.ym as { a?: unknown[][]; l?: number }).l = Date.now();
   w.ym(Number(id), 'init', {
+    ssr: true,
+    referrer: document.referrer,
+    url: location.href,
     clickmap: true,
     trackLinks: true,
     accurateTrackBounce: true,
