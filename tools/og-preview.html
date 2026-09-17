@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8" />
+<title>og</title>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet" />
+<style>
+  body { margin: 0; background: #ddd; font-family: Manrope, sans-serif; padding: 24px; }
+  /* Полотно 1200×630 — стандарт превью для Telegram, WhatsApp, VK. */
+  #og { width: 1200px; height: 630px; position: relative; overflow: hidden; background: #fbf9f6; display: flex; }
+  .left { flex: 1; padding: 72px 64px 64px 80px; display: flex; flex-direction: column; justify-content: center; }
+  .badge { display: inline-block; align-self: flex-start; background: #f6e9e1; color: #8f5a3d; font-weight: 600; font-size: 22px; padding: 10px 20px; border-radius: 999px; margin-bottom: 28px; }
+  h1 { margin: 0 0 22px; font-size: 62px; line-height: 1.08; letter-spacing: -0.02em; color: #2f3730; font-weight: 700; }
+  h1 em { font-style: normal; color: #6c8f7d; }
+  .name { font-size: 26px; color: #2f3730; font-weight: 700; margin-top: 8px; }
+  .role { font-size: 22px; color: #6b736c; margin-top: 4px; }
+  .site { position: absolute; left: 80px; bottom: 44px; font-size: 22px; color: #557463; font-weight: 600; }
+  .photo { width: 470px; height: 630px; object-fit: cover; object-position: center 20%; }
+  .fade { position: absolute; right: 470px; top: 0; bottom: 0; width: 80px; background: linear-gradient(to right, #fbf9f6, rgba(251,249,246,0)); }
+</style>
+</head>
+<body>
+<div id="og">
+  <div class="left">
+    <span class="badge">Знакомство — 20 минут онлайн, 500 ₽</span>
+    <h1>Выйти из сценария, который <em>повторяется</em> снова и снова</h1>
+    <div class="name">Софья Дарвина</div>
+    <div class="role">Психолог, гештальт-терапевт · Ростов-на-Дону и онлайн</div>
+  </div>
+  <div class="site">darwina.ru</div>
+  <img class="photo" src="/sofya.jpg" alt="" crossorigin="anonymous" />
+</div>
+
+<!-- Иконка сайта: та же монограмма, что и у бота, квадрат без рамки. -->
+<svg id="icon" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" width="128" height="128">
+  <rect width="512" height="512" rx="112" fill="#6c8f7d"/>
+  <text x="256" y="268" text-anchor="middle" dominant-baseline="middle" font-family="Manrope" font-weight="700" font-size="300" fill="#fbf9f6">С</text>
+</svg>
+
+<script>
+  // OG-картинка: рисуем DOM в canvas по частям (фон, текст, фото), без внешних библиотек.
+  window.renderOg = async () => {
+    await document.fonts.load('700 54px Manrope');
+    await document.fonts.load('600 22px Manrope');
+    const c = document.createElement('canvas'); c.width = 1200; c.height = 630;
+    const ctx = c.getContext('2d');
+    ctx.fillStyle = '#fbf9f6'; ctx.fillRect(0, 0, 1200, 630);
+
+    // Фото справа
+    const img = document.querySelector('.photo');
+    await new Promise((r) => (img.complete ? r() : (img.onload = r)));
+    // object-fit: cover, object-position: center 20% для 470×630 из 900×1125
+    const sw = img.naturalWidth, sh = img.naturalHeight;
+    const scale = Math.max(430 / sw, 630 / sh);
+    const dw = sw * scale, dh = sh * scale;
+    const dx = 770 + (430 - dw) / 2, dy = (630 - dh) * 0.2;
+    ctx.drawImage(img, dx, dy, dw, dh);
+    // Мягкий переход к фону
+    const g = ctx.createLinearGradient(690, 0, 770, 0);
+    g.addColorStop(0, '#fbf9f6'); g.addColorStop(1, 'rgba(251,249,246,0)');
+    ctx.fillStyle = g; ctx.fillRect(690, 0, 80, 630);
+
+    // Бейдж
+    const badge = 'Знакомство — 20 минут онлайн, 500 ₽';
+    ctx.font = '600 22px Manrope';
+    const bw = ctx.measureText(badge).width + 40;
+    ctx.fillStyle = '#f6e9e1';
+    roundRect(ctx, 80, 92, bw, 46, 23); ctx.fill();
+    ctx.fillStyle = '#8f5a3d'; ctx.textBaseline = 'middle'; ctx.fillText(badge, 100, 115);
+
+    // Заголовок в 3 строки
+    ctx.textBaseline = 'alphabetic';
+    ctx.font = '700 54px Manrope';
+    const lines = [['Выйти из сценария,', '#2f3730'], ['который ', '#2f3730', 'повторяется', '#6c8f7d'], ['снова и снова', '#2f3730']];
+    let y = 226;
+    for (const l of lines) {
+      let x = 80;
+      for (let i = 0; i < l.length; i += 2) { ctx.fillStyle = l[i + 1]; ctx.fillText(l[i], x, y); x += ctx.measureText(l[i]).width; }
+      y += 62;
+    }
+    // Имя и роль
+    ctx.fillStyle = '#2f3730'; ctx.font = '700 26px Manrope'; ctx.fillText('Софья Дарвина', 80, 470);
+    ctx.fillStyle = '#6b736c'; ctx.font = '500 22px Manrope'; ctx.fillText('Психолог, гештальт-терапевт · Ростов-на-Дону и онлайн', 80, 506);
+    // Домен
+    ctx.fillStyle = '#557463'; ctx.font = '600 22px Manrope'; ctx.fillText('darwina.ru', 80, 580);
+    return c.toDataURL('image/jpeg', 0.9);
+  };
+  function roundRect(ctx, x, y, w, h, r) { ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r); ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath(); }
+
+  // Иконка в нужном размере.
+  window.renderIcon = async (size) => {
+    await document.fonts.load('700 100px Manrope');
+    const c = document.createElement('canvas'); c.width = size; c.height = size;
+    const ctx = c.getContext('2d');
+    const s = size / 512;
+    ctx.fillStyle = '#6c8f7d'; roundRect(ctx, 0, 0, size, size, 112 * s); ctx.fill();
+    ctx.fillStyle = '#fbf9f6'; ctx.font = `700 ${300 * s}px Manrope`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText('С', size / 2, size / 2 + 12 * s);
+    return c.toDataURL('image/png');
+  };
+</script>
+</body>
+</html>

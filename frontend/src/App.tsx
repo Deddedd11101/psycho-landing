@@ -6,6 +6,7 @@
 import { useCallback, useEffect, useState } from 'react';
 
 import { Header } from './components/landing/Header';
+import { Seo } from './components/landing/Seo';
 import {
   About,
   CallToAction,
@@ -73,6 +74,7 @@ export function App() {
       <Footer />
 
       <WizardModal isOpen={isWizardOpen} onClose={closeWizard} />
+      <Seo />
     </>
   );
 }

@@ -13,6 +13,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { ApiRequestError, fetchSlots, submitForm } from '../../api/client';
+import { trackGoal } from '../landing/Seo';
 import { psychologist } from '../../data/content';
 import { useWizardState } from '../../hooks/useWizardState';
 import type { ClientForm, Intent, SubmitFormResponse, WizardScreen } from '../../types';
@@ -168,6 +169,7 @@ export function WizardModal({ isOpen, onClose }: WizardModalProps) {
 
       setResult(response);
       setScreen('success');
+      trackGoal(intent === 'booking' ? 'booking_submitted' : 'contact_submitted');
       // Черновик больше не нужен: заявка ушла.
       reset();
     } catch (error) {

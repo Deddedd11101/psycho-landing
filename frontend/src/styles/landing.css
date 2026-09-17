@@ -737,6 +737,47 @@
   margin-top: 8px;
 }
 
+/* ---------- Баннер про cookie (только если включена Метрика) ---------- */
+
+.cookie {
+  position: fixed;
+  left: 16px;
+  right: 16px;
+  bottom: 16px;
+  z-index: 150;
+  max-width: 560px;
+  margin: 0 auto;
+  padding: 18px 20px;
+  border-radius: var(--radius-lg);
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-lg);
+  animation: fade-slide-down 0.3s ease;
+}
+
+.cookie__text {
+  font-size: 14px;
+  color: var(--color-text-muted);
+  margin-bottom: 12px;
+}
+
+.cookie__text a {
+  color: var(--color-accent-dark);
+  text-decoration: underline;
+}
+
+.cookie__actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.cookie__actions .button {
+  min-height: 44px;
+  padding: 10px 20px;
+  font-size: 15px;
+}
+
 /* ---------- Планшет ---------- */
 
 @media (min-width: 768px) {
