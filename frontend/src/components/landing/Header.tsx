@@ -32,6 +32,7 @@ export function Header({ onStart }: HeaderProps) {
       <div className="container">
         <div className="header__inner">
           <a className="header__logo" href="#top">
+            <img className="header__logo-mark" src="/icon-192.png" alt="" width="36" height="36" />
             <span className="header__logo-text">
               {psychologist.name}
               <small>{psychologist.roleShort}</small>

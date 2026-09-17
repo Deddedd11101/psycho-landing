@@ -40,6 +40,13 @@
   letter-spacing: -0.01em;
 }
 
+.header__logo-mark {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  flex-shrink: 0;
+}
+
 .header__logo-text small {
   display: block;
   font-size: 12px;
